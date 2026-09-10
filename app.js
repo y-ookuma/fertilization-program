@@ -141,6 +141,45 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('closeModal').addEventListener('click', () => modal.style.display = 'none');
     window.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
 
+    // ---------- READMEモーダル（README.mdをfetchしてMarkdownとして描画） ----------
+    const readmeModal = document.getElementById('readmeModal');
+    const readmeContent = document.getElementById('readmeContent');
+    let readmeLoaded = false;
+
+    function loadReadme() {
+        readmeContent.innerHTML = '<p>読み込み中...</p>';
+        fetch('README.md')
+            .then(res => {
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                return res.text();
+            })
+            .then(text => {
+                if (typeof marked === 'undefined') {
+                    throw new Error('marked.js not loaded');
+                }
+                readmeContent.innerHTML = marked.parse(text);
+                readmeLoaded = true;
+            })
+            .catch(() => {
+                readmeContent.innerHTML =
+                    '<p>README.mdの読み込みに失敗しました。index.htmlと同じフォルダにREADME.mdがあるか、' +
+                    'ローカルサーバー経由（file://ではなくhttp://）で開いているかをご確認ください。</p>';
+            });
+    }
+
+    function openReadmeModal() {
+        readmeModal.style.display = 'block';
+        if (!readmeLoaded) loadReadme();
+    }
+
+    document.getElementById('readmeBtn').addEventListener('click', openReadmeModal);
+    document.getElementById('readmeInlineLink').addEventListener('click', () => {
+        modal.style.display = 'none';
+        openReadmeModal();
+    });
+    document.getElementById('closeReadmeModal').addEventListener('click', () => readmeModal.style.display = 'none');
+    window.addEventListener('click', (e) => { if (e.target === readmeModal) readmeModal.style.display = 'none'; });
+
     // ---------- フロー図（1→2→3）の状態表示 ----------
     function setFlowStep(activeStep) {
         document.querySelectorAll('.flow-step').forEach(el => {
