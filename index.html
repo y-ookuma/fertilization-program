@@ -32,7 +32,7 @@
             </div>
             <div class="hero-buttons">
                 <button id="helpBtn" class="btn-secondary">📖 手順書</button>
-                <a id="readmeBtn" class="btn-secondary" href="README.md" target="_blank" rel="noopener">📄 README</a>
+                <button id="readmeBtn" class="btn-secondary">📄 README</button>
             </div>
         </header>
 
@@ -261,11 +261,20 @@
                 <li><strong>(3) 施肥量 ― PNG保存:</strong> 「結果をPNG保存」ボタンで、施肥設計書の内容を1枚の画像として保存できます。</li>
                 <li><strong>パラメータの保存・復元:</strong> ページ上部・下部どちらの「パラメータを保存」からもファイル名を指定して.jsonファイルをダウンロードできます。作物・土壌分析値・面積・8種類の肥料情報がすべて含まれます。「パラメータを復元」でファイルを選択して読み込めます。</li>
             </ol>
-            <p class="modal-readme-link">詳しい計算式やQ&amp;Aは <a href="README.md" target="_blank" rel="noopener">README.md</a> をご覧ください。</p>
+            <p class="modal-readme-link">詳しい計算式やQ&amp;Aは <button id="readmeInlineLink" class="link-button">README.md</button> をご覧ください。</p>
+        </div>
+    </div>
+
+    <!-- READMEモーダル -->
+    <div id="readmeModal" class="modal">
+        <div class="modal-content modal-content-wide">
+            <span id="closeReadmeModal" class="close">&times;</span>
+            <div id="readmeContent" class="markdown-body">読み込み中...</div>
         </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
