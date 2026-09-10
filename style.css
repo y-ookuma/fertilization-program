@@ -12,6 +12,8 @@
     --sky-tint: #E7F3FB;
     --stone: #8C8168;
     --stone-tint: #F2F1EC;
+    --purple: #8B6FB3;
+    --purple-tint: #F1ECF8;
     --ink: #2E3B2E;
     --ink-soft: #63705F;
     --line: #E3E8DF;
@@ -38,7 +40,7 @@ body {
 }
 
 .container {
-    max-width: 820px;
+    max-width: 860px;
     margin: 0 auto;
 }
 
@@ -72,7 +74,17 @@ h1, h2, h3 {
 }
 .hero-art { flex-shrink: 0; }
 .sprout-illustration { width: 74px; height: 74px; display: block; }
-.hero #helpBtn { flex-shrink: 0; align-self: flex-start; }
+.hero-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex-shrink: 0;
+}
+.hero-buttons .btn-secondary {
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+}
 
 /* ---------- Buttons ---------- */
 button {
@@ -99,6 +111,14 @@ button:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
     padding: 14px 30px;
     box-shadow: 0 6px 16px rgba(245, 185, 66, 0.4);
 }
+.btn-complete {
+    background: linear-gradient(135deg, var(--green), var(--green-deep));
+    color: white;
+    font-weight: 700;
+    font-size: 1.08rem;
+    padding: 14px 30px;
+    box-shadow: 0 6px 16px rgba(63, 143, 95, 0.35);
+}
 
 .action-bar {
     margin-top: 16px;
@@ -107,6 +127,62 @@ button:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
     flex-wrap: wrap;
 }
 .center { text-align: center; margin-top: 28px; }
+.complete-btn-wrap { margin-top: 34px; padding-top: 20px; border-top: 2px dashed var(--line); }
+
+/* ---------- Flow steps diagram ---------- */
+.flow-steps {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 22px;
+    padding: 16px 10px;
+    flex-wrap: wrap;
+}
+.flow-step {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 16px;
+    border-radius: 999px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    color: var(--ink-soft);
+    transition: all 0.2s ease;
+}
+.flow-step .flow-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--stone-tint);
+    color: var(--ink-soft);
+    font-size: 0.75rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+.flow-step .flow-label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+.flow-step.is-active {
+    background: linear-gradient(135deg, var(--green), var(--green-deep));
+    border-color: transparent;
+    color: white;
+    box-shadow: 0 4px 12px rgba(63, 143, 95, 0.3);
+}
+.flow-step.is-active .flow-num { background: rgba(255,255,255,0.25); color: white; }
+.flow-step.is-done {
+    background: var(--green-tint);
+    border-color: transparent;
+    color: var(--green-deep);
+}
+.flow-step.is-done .flow-num { background: var(--green); color: white; }
+.flow-arrow { color: var(--line); display: flex; align-items: center; flex-shrink: 0; }
+.flow-arrow svg { display: block; }
 
 /* ---------- Cards ---------- */
 .card {
@@ -136,8 +212,14 @@ button:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
     font-weight: 700;
     flex-shrink: 0;
 }
+.sub-heading {
+    font-size: 0.98rem;
+    color: var(--green-deep);
+    margin: 22px 0 12px;
+}
+.sub-heading:first-of-type { margin-top: 4px; }
 
-select, input[type="number"] {
+select, input[type="number"], input[type="text"] {
     width: 100%;
     padding: 10px 12px;
     box-sizing: border-box;
@@ -147,7 +229,7 @@ select, input[type="number"] {
     font-size: 0.95rem;
     background: #FCFDFB;
 }
-select:focus, input[type="number"]:focus {
+select:focus, input[type="number"]:focus, input[type="text"]:focus {
     outline: none;
     border-color: var(--green);
     box-shadow: 0 0 0 3px rgba(63, 143, 95, 0.15);
@@ -166,7 +248,7 @@ select:focus, input[type="number"]:focus {
     color: var(--ink-soft);
 }
 
-/* ---------- Result card ---------- */
+/* ---------- Result card / header ---------- */
 .result-card { border-color: #D9EAD9; }
 
 .result-header {
@@ -223,10 +305,10 @@ select:focus, input[type="number"]:focus {
 }
 .section-label:first-of-type { margin-top: 0; }
 
-/* ---------- NPK cards ---------- */
+/* ---------- NPK / nutrient cards ---------- */
 .npk-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
     gap: 14px;
 }
 .npk-card {
@@ -248,6 +330,7 @@ select:focus, input[type="number"]:focus {
     background: rgba(255,255,255,0.7);
     display: flex; align-items: center; justify-content: center;
     color: var(--accent, var(--green));
+    flex-shrink: 0;
 }
 .npk-card-head .npk-title { font-weight: 700; color: var(--ink); font-size: 1rem; }
 .npk-card-head .npk-sub { font-size: 0.72rem; color: var(--ink-soft); }
@@ -272,11 +355,12 @@ select:focus, input[type="number"]:focus {
     justify-content: space-between;
     font-size: 0.78rem;
     color: var(--ink-soft);
+    margin-bottom: 2px;
 }
 .npk-numbers strong { color: var(--ink); font-size: 0.95rem; }
 .npk-deficit-line {
     margin-top: 10px;
-    font-size: 0.88rem;
+    font-size: 0.86rem;
     font-weight: 700;
     color: var(--accent, var(--green));
 }
@@ -284,12 +368,15 @@ select:focus, input[type="number"]:focus {
 .npk-card.npk-n { --tint: var(--green-tint); --accent: var(--green-deep); }
 .npk-card.npk-p { --tint: #FDF3E4; --accent: var(--sun-deep); }
 .npk-card.npk-k { --tint: var(--sky-tint); --accent: var(--sky); }
+.npk-card.npk-cao { --tint: var(--stone-tint); --accent: var(--stone); }
+.npk-card.npk-mgo { --tint: var(--purple-tint); --accent: var(--purple); }
 
 /* ---------- Advice cards ---------- */
 .advice-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: 14px;
+    margin-top: 18px;
 }
 .advice-card {
     display: flex;
@@ -318,6 +405,111 @@ select:focus, input[type="number"]:focus {
     color: var(--ink-soft);
 }
 
+/* ---------- Area input ---------- */
+.area-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+.area-row input[type="number"] { max-width: 180px; }
+.area-row select { max-width: 200px; }
+.area-converted {
+    font-size: 0.85rem;
+    color: var(--green-deep);
+    font-weight: 700;
+    background: var(--green-tint);
+    padding: 8px 14px;
+    border-radius: 10px;
+}
+
+/* ---------- Fertilizer rows ---------- */
+.fert-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.fert-row {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    background: #FCFDFB;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 14px 16px;
+}
+.fert-row-head { padding-top: 26px; flex-shrink: 0; }
+.fert-index {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--sun);
+    color: #4A3007;
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+.fert-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1.5fr repeat(7, 1fr);
+    gap: 10px;
+}
+.fert-name-group input { font-weight: 700; }
+.fert-grid .form-group label { font-size: 0.72rem; }
+
+/* ---------- Tables (fertilizer results / report) ---------- */
+.table-scroll { overflow-x: auto; }
+.fert-table {
+    width: 100%;
+    min-width: 640px;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+.fert-table th, .fert-table td {
+    padding: 10px 10px;
+    text-align: center;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+}
+.fert-table th {
+    background: var(--green-tint);
+    color: var(--green-deep);
+    font-weight: 700;
+}
+.fert-table td.fert-name-cell { text-align: left; font-weight: 700; white-space: normal; }
+.fert-table tr.fert-total-row td {
+    font-weight: 700;
+    background: var(--soil-tint);
+    border-bottom: none;
+}
+
+/* ---------- Soil summary grid (report) ---------- */
+.soil-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+}
+.soil-summary-item {
+    background: var(--stone-tint);
+    border-radius: 12px;
+    padding: 10px 14px;
+}
+.soil-summary-item .label { font-size: 0.72rem; color: var(--ink-soft); display: block; margin-bottom: 2px; }
+.soil-summary-item .value { font-size: 1rem; font-weight: 700; color: var(--ink); }
+
+.report-compost-text {
+    font-size: 0.88rem;
+    line-height: 1.7;
+    color: var(--ink-soft);
+    background: var(--soil-tint);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin: 0;
+}
+
 /* ---------- Modal ---------- */
 .modal {
     display: none;
@@ -329,14 +521,16 @@ select:focus, input[type="number"]:focus {
 }
 .modal-content {
     background-color: var(--card);
-    margin: 12% auto;
+    margin: 8% auto;
     padding: 26px;
     border-radius: 18px;
     width: 88%;
-    max-width: 520px;
+    max-width: 560px;
+    max-height: 80vh;
+    overflow-y: auto;
 }
 .modal-content h2 { margin-top: 0; }
-.modal-content ol { padding-left: 20px; line-height: 1.7; font-size: 0.92rem; }
+.modal-content ol { padding-left: 20px; line-height: 1.7; font-size: 0.9rem; }
 .close {
     color: var(--ink-soft);
     float: right;
@@ -346,18 +540,6 @@ select:focus, input[type="number"]:focus {
     line-height: 1;
 }
 .close:hover { color: var(--ink); }
-
-/* ---------- Footer ---------- */
-.site-footer {
-    max-width: 820px;
-    margin: 32px auto 0;
-    text-align: center;
-}
-.site-footer p {
-    margin: 0;
-    font-size: 0.8rem;
-    color: var(--ink-soft);
-}
 
 /* ---------- Modal readme link ---------- */
 .modal-readme-link {
@@ -373,11 +555,39 @@ select:focus, input[type="number"]:focus {
 }
 .modal-readme-link a:hover { opacity: 0.8; }
 
+/* ---------- Bottom action bar ---------- */
+.bottom-action-bar {
+    margin-top: 32px;
+    padding-top: 20px;
+    border-top: 2px dashed var(--line);
+    justify-content: center;
+}
+
+/* ---------- Footer ---------- */
+.site-footer {
+    max-width: 860px;
+    margin: 32px auto 0;
+    text-align: center;
+}
+.site-footer p {
+    margin: 2px 0;
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+}
+
 /* ---------- Responsive ---------- */
+@media (max-width: 700px) {
+    .fert-grid { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); }
+}
 @media (max-width: 560px) {
     .hero { flex-wrap: wrap; }
     .hero-art { order: 3; }
-    .hero #helpBtn { order: 2; }
+    .hero-buttons { order: 2; flex-direction: row; width: 100%; }
+    .hero-buttons button, .hero-buttons a { flex: 1; }
     .result-header { flex-direction: column; align-items: stretch; }
     .result-header button { width: 100%; }
+    .fert-row { flex-direction: column; }
+    .fert-row-head { padding-top: 0; }
+    .flow-step .flow-label { font-size: 0.76rem; }
+    .flow-step { padding: 7px 10px; }
 }
