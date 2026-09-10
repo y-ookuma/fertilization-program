@@ -347,6 +347,32 @@ select:focus, input[type="number"]:focus {
 }
 .close:hover { color: var(--ink); }
 
+/* ---------- Footer ---------- */
+.site-footer {
+    max-width: 820px;
+    margin: 32px auto 0;
+    text-align: center;
+}
+.site-footer p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+}
+
+/* ---------- Modal readme link ---------- */
+.modal-readme-link {
+    margin: 18px 0 0;
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+}
+.modal-readme-link a {
+    color: var(--green-deep);
+    font-weight: 700;
+    text-decoration: none;
+    border-bottom: 1px solid var(--green);
+}
+.modal-readme-link a:hover { opacity: 0.8; }
+
 /* ---------- Responsive ---------- */
 @media (max-width: 560px) {
     .hero { flex-wrap: wrap; }
