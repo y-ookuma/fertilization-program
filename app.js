@@ -68,6 +68,8 @@ const AREA_UNIT_FACTOR = { m2: 1, a: 100, ha: 10000 };
 const MG100G_TO_KG10A = 0.15;      // mg/100g → kg/10a の簡易換算係数（P2O5・K2O・CaO・MgOで共通使用）
 const TARGET_CAO_MG100G = 300;     // 石灰(CaO)の目安値 mg/100g
 const TARGET_MGO_MG100G = 40;      // 苦土(MgO)の目安値 mg/100g
+const EC_TO_NO3N_MG100G = 80;      // EC(mS/cm) → 推定硝酸態窒素(mg/100g) の簡易換算係数
+const DEFAULT_EC = 0.3;            // ECが未入力の場合に仮定する値 (mS/cm)
 const FERT_COUNT = 8;
 
 const NUTRIENT_DEFS = [
@@ -253,7 +255,8 @@ document.addEventListener('DOMContentLoaded', () => {
             },
             area: {
                 value: document.getElementById('areaValue').value,
-                unit: document.getElementById('areaUnit').value
+                unit: document.getElementById('areaUnit').value,
+                fieldName: document.getElementById('fieldName').value
             },
             fertilizers: fertilizers
         };
@@ -277,6 +280,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (data.area) {
             document.getElementById('areaValue').value = data.area.value || '';
             document.getElementById('areaUnit').value = data.area.unit || 'm2';
+            document.getElementById('fieldName').value = data.area.fieldName || '';
         }
         updateAreaConvertedDisplay();
 
@@ -425,9 +429,26 @@ document.addEventListener('DOMContentLoaded', () => {
         return `【${categoryLabel[crop.category] || ''}】完熟堆肥 ${range.min}〜${range.max} t/10a が目安です（今回の面積では 約${totalMin}〜${totalMax} t）。${range.note}`;
     }
 
+    // ECから推定硝酸態窒素量・残存窒素量を算出する
+    // 硝酸態窒素の実測値がない場合の簡易推定として、電気伝導度(EC)を用いる。
+    function estimateResidualNitrogen(ecInput) {
+        const ec = (isNaN(ecInput) || ecInput <= 0) ? DEFAULT_EC : ecInput;
+        const no3n_mg100g = ec * EC_TO_NO3N_MG100G;
+        const residualN = no3n_mg100g * MG100G_TO_KG10A;
+        return { ec, no3n_mg100g, residualN, usedDefault: isNaN(ecInput) || ecInput <= 0 };
+    }
+
+    // 窒素残存量の算定方法アドバイス文
+    function buildNitrogenAdviceText(nEstimate) {
+        const ecText = nEstimate.usedDefault
+            ? `ECが未入力のため仮の値(${DEFAULT_EC.toFixed(2)} mS/cm)で計算しています`
+            : `入力されたEC ${nEstimate.ec.toFixed(2)} mS/cm から算出しています`;
+        return `硝酸態窒素の実測値がないため、${ecText}。推定硝酸態窒素 約${nEstimate.no3n_mg100g.toFixed(1)} mg/100g → 残存窒素 約${nEstimate.residualN.toFixed(1)} kg/10a として計算に使用します。硝酸態窒素の実測値がある場合は、より正確な値に置き換えることをおすすめします。`;
+    }
+
     // 作物・土壌値から5養分（N/P/K/CaO/MgO）の目標・残存・不足（10aあたり）を算出
     function calcBaseNutrients(crop, soil) {
-        const soilN = 25; // 簡易目安（本来は硝酸態窒素等から換算）
+        const nEstimate = estimateResidualNitrogen(soil.ec);
 
         const targetN = crop.nutrient_absorption_kg_10a.n * crop.standard_basal_ratio.n;
         const targetP = crop.nutrient_absorption_kg_10a.p2o5 * crop.standard_basal_ratio.p2o5;
@@ -435,13 +456,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const targetCaO = TARGET_CAO_MG100G * MG100G_TO_KG10A;
         const targetMgO = TARGET_MGO_MG100G * MG100G_TO_KG10A;
 
-        const residualN = soilN * 0.2;
+        const residualN = nEstimate.residualN;
         const residualP = soil.p2o5 * MG100G_TO_KG10A;
         const residualK = soil.k2o * MG100G_TO_KG10A;
         const residualCaO = soil.cao * MG100G_TO_KG10A;
         const residualMgO = soil.mgo * MG100G_TO_KG10A;
 
         return {
+            nEstimate,
             n:   { target: targetN,   residual: residualN,   deficit: Math.max(0, targetN - residualN) },
             p:   { target: targetP,   residual: residualP,   deficit: Math.max(0, targetP - residualP) },
             k:   { target: targetK,   residual: residualK,   deficit: Math.max(0, targetK - residualK) },
@@ -574,7 +596,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const soil = {
             ph: parseFloat(document.getElementById('soil_ph').value),
-            ec: document.getElementById('soil_ec').value,
+            ec: parseFloat(document.getElementById('soil_ec').value),
             cao: parseFloat(document.getElementById('soil_cao').value) || 0,
             mgo: parseFloat(document.getElementById('soil_mgo').value) || 0,
             k2o: parseFloat(document.getElementById('soil_k2o').value) || 0,
@@ -610,7 +632,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // 目標値・残存量・不足量カード
         renderNpkGrid('npkGrid', scaled);
 
-        // 堆肥・石灰苦土資材アドバイス
+        // 窒素算定・堆肥・石灰苦土資材アドバイス
+        document.getElementById('nitrogenAdviceText').textContent = buildNitrogenAdviceText(base.nEstimate);
         document.getElementById('compostAdviceText').textContent = buildCompostText(crop, scale);
         document.getElementById('limeAdviceText').textContent = buildMaterialAdvice(soil.cao_mgo_ratio);
 
@@ -672,14 +695,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const { areaM2, scale, scaled, rows, totals } = lastFertCalc;
         const a = areaM2 / 100;
         const ha = areaM2 / 10000;
+        const fieldName = document.getElementById('fieldName').value.trim();
 
         // バッジ・タイトル
         document.getElementById('reportCropEmoji').textContent = crop.emoji;
-        document.getElementById('reportCropName').textContent = crop.name;
+        document.getElementById('reportCropName').textContent = fieldName ? `${crop.name}（${fieldName}）` : crop.name;
         document.getElementById('captureCropEmoji').textContent = crop.emoji;
         document.getElementById('captureCropName').textContent = `${crop.emoji} ${crop.name}`;
         document.getElementById('captureAreaCaption').textContent =
-            `施肥設計書 ／ 面積：${areaM2.toLocaleString('ja-JP', { maximumFractionDigits: 1 })} ㎡（${a.toFixed(2)} a ／ ${ha.toFixed(3)} ha）`;
+            (fieldName ? `圃場名：${fieldName} ／ ` : '') +
+            `面積：${areaM2.toLocaleString('ja-JP', { maximumFractionDigits: 1 })} ㎡（${a.toFixed(2)} a ／ ${ha.toFixed(3)} ha）`;
 
         // 土壌分析結果サマリー
         const soilLabels = [
@@ -718,58 +743,107 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('section3').scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
 
+    // ---------- 結果の画像化（PNG・PDF共通） ----------
+    const CAPTURE_RENDER_SCALE = 2;
+
+    // 作成日(右上)・ライセンス表記(右下)をcanvasに印字する
+    function stampCaptureCanvas(canvas) {
+        const ctx = canvas.getContext('2d');
+        const scale = CAPTURE_RENDER_SCALE;
+        const padding = 16 * scale;
+        const fontSize = 13 * scale;
+        const now = new Date();
+        const pad = (n) => String(n).padStart(2, '0');
+        const dateStr = `作成日: ${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+
+        ctx.font = `bold ${fontSize}px "Noto Sans JP", "Hiragino Sans", Arial, sans-serif`;
+        ctx.textAlign = 'right';
+
+        // 右上：作成日
+        const dateWidth = ctx.measureText(dateStr).width;
+        const topBlockHeight = fontSize * 1.3 + padding * 0.6;
+        ctx.fillStyle = 'rgba(253, 254, 252, 0.94)';
+        ctx.fillRect(canvas.width - dateWidth - padding * 2, 0, dateWidth + padding * 2, topBlockHeight);
+        ctx.textBaseline = 'top';
+        ctx.fillStyle = '#2E3B2E';
+        ctx.fillText(dateStr, canvas.width - padding, padding * 0.4);
+
+        // 右下：ライセンス表記
+        const footerLines = [
+            'This project is licensed under the BSD 3-Clause License.',
+            'Copyright (c) 2026 y-ookuma'
+        ];
+        const lineHeight = 18 * scale;
+        const bottomBlockHeight = lineHeight * footerLines.length + padding * 0.8;
+        ctx.fillStyle = 'rgba(253, 254, 252, 0.94)';
+        ctx.fillRect(0, canvas.height - bottomBlockHeight, canvas.width, bottomBlockHeight);
+
+        ctx.textBaseline = 'bottom';
+        ctx.fillStyle = '#2E3B2E';
+        const rightX = canvas.width - padding;
+        let y = canvas.height - padding;
+        for (let i = footerLines.length - 1; i >= 0; i--) {
+            ctx.fillText(footerLines[i], rightX, y);
+            y -= lineHeight;
+        }
+
+        return canvas;
+    }
+
+    // captureAreaを撮影し、スタンプ済みcanvasを返す（フォント読み込み待ち込み）
+    function generateStampedCaptureCanvas() {
+        const target = document.getElementById('captureArea');
+        const fontsReady = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
+        return fontsReady
+            .then(() => html2canvas(target, { backgroundColor: '#FDFEFC', scale: CAPTURE_RENDER_SCALE }))
+            .then(canvas => stampCaptureCanvas(canvas));
+    }
+
     // ---------- PNG出力 ----------
     document.getElementById('exportPngBtn').addEventListener('click', () => {
-        const target = document.getElementById('captureArea');
         if (typeof html2canvas === 'undefined') {
             alert('PNG出力機能の読み込みに失敗しました。通信環境をご確認のうえ再度お試しください。');
             return;
         }
-        const RENDER_SCALE = 2;
-        html2canvas(target, { backgroundColor: '#FDFEFC', scale: RENDER_SCALE }).then(canvas => {
-            // 作成日・ライセン表記を右下に印字する
-            const ctx = canvas.getContext('2d');
-            const now = new Date();
-            const pad = (n) => String(n).padStart(2, '0');
-            const dateStr = `作成日: ${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+        generateStampedCaptureCanvas()
+            .then(canvas => {
+                const link = document.createElement('a');
+                const cropName = document.getElementById('reportCropName').textContent || 'result';
+                link.download = `施肥設計書_${cropName}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            })
+            .catch(err => {
+                console.error('PNG出力エラー:', err);
+                alert('PNGの生成に失敗しました。もう一度お試しください。');
+            });
+    });
 
-            const footerLines = [
-                dateStr,
-                'This project is licensed under the BSD 3-Clause License.',
-                'Copyright (c) 2026 y-ookuma'
-            ];
-
-            const padding = 14 * RENDER_SCALE;
-            const lineHeight = 16 * RENDER_SCALE;
-            const fontSize = 11 * RENDER_SCALE;
-
-            ctx.font = `${fontSize}px "Noto Sans JP", sans-serif`;
-            ctx.textAlign = 'right';
-            ctx.textBaseline = 'bottom';
-
-            // 背景に薄い帯を敷いて視認性を確保
-            const blockHeight = lineHeight * footerLines.length + padding * 0.6;
-            const gradient = ctx.createLinearGradient(0, canvas.height - blockHeight, 0, canvas.height);
-            gradient.addColorStop(0, 'rgba(253, 254, 252, 0)');
-            gradient.addColorStop(1, 'rgba(253, 254, 252, 0.92)');
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, canvas.height - blockHeight, canvas.width, blockHeight);
-
-            ctx.fillStyle = 'rgba(46, 59, 46, 0.72)';
-            const rightX = canvas.width - padding;
-            let y = canvas.height - padding;
-            for (let i = footerLines.length - 1; i >= 0; i--) {
-                ctx.fillText(footerLines[i], rightX, y);
-                y -= lineHeight;
-            }
-
-            const link = document.createElement('a');
-            const cropName = document.getElementById('reportCropName').textContent || 'result';
-            link.download = `施肥設計書_${cropName}.png`;
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-        }).catch(() => {
-            alert('PNGの生成に失敗しました。もう一度お試しください。');
-        });
+    // ---------- PDF出力 ----------
+    document.getElementById('exportPdfBtn').addEventListener('click', () => {
+        if (typeof html2canvas === 'undefined') {
+            alert('PDF出力機能の読み込みに失敗しました。通信環境をご確認のうえ再度お試しください。');
+            return;
+        }
+        if (typeof window.jspdf === 'undefined' || typeof window.jspdf.jsPDF === 'undefined') {
+            alert('PDF出力機能の読み込みに失敗しました。通信環境をご確認のうえ再度お試しください。');
+            return;
+        }
+        generateStampedCaptureCanvas()
+            .then(canvas => {
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF({
+                    orientation: canvas.width >= canvas.height ? 'landscape' : 'portrait',
+                    unit: 'px',
+                    format: [canvas.width, canvas.height]
+                });
+                pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, canvas.width, canvas.height);
+                const cropName = document.getElementById('reportCropName').textContent || 'result';
+                pdf.save(`施肥設計書_${cropName}.pdf`);
+            })
+            .catch(err => {
+                console.error('PDF出力エラー:', err);
+                alert('PDFの生成に失敗しました。もう一度お試しください。');
+            });
     });
 });
