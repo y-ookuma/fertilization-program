@@ -725,7 +725,44 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('PNG出力機能の読み込みに失敗しました。通信環境をご確認のうえ再度お試しください。');
             return;
         }
-        html2canvas(target, { backgroundColor: '#FDFEFC', scale: 2 }).then(canvas => {
+        const RENDER_SCALE = 2;
+        html2canvas(target, { backgroundColor: '#FDFEFC', scale: RENDER_SCALE }).then(canvas => {
+            // 作成日・ライセン表記を右下に印字する
+            const ctx = canvas.getContext('2d');
+            const now = new Date();
+            const pad = (n) => String(n).padStart(2, '0');
+            const dateStr = `作成日: ${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+
+            const footerLines = [
+                dateStr,
+                'This project is licensed under the BSD 3-Clause License.',
+                'Copyright (c) 2026 y-ookuma'
+            ];
+
+            const padding = 14 * RENDER_SCALE;
+            const lineHeight = 16 * RENDER_SCALE;
+            const fontSize = 11 * RENDER_SCALE;
+
+            ctx.font = `${fontSize}px "Noto Sans JP", sans-serif`;
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'bottom';
+
+            // 背景に薄い帯を敷いて視認性を確保
+            const blockHeight = lineHeight * footerLines.length + padding * 0.6;
+            const gradient = ctx.createLinearGradient(0, canvas.height - blockHeight, 0, canvas.height);
+            gradient.addColorStop(0, 'rgba(253, 254, 252, 0)');
+            gradient.addColorStop(1, 'rgba(253, 254, 252, 0.92)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, canvas.height - blockHeight, canvas.width, blockHeight);
+
+            ctx.fillStyle = 'rgba(46, 59, 46, 0.72)';
+            const rightX = canvas.width - padding;
+            let y = canvas.height - padding;
+            for (let i = footerLines.length - 1; i >= 0; i--) {
+                ctx.fillText(footerLines[i], rightX, y);
+                y -= lineHeight;
+            }
+
             const link = document.createElement('a');
             const cropName = document.getElementById('reportCropName').textContent || 'result';
             link.download = `施肥設計書_${cropName}.png`;
