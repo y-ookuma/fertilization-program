@@ -555,6 +555,76 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus {
 }
 .modal-readme-link a:hover { opacity: 0.8; }
 
+.link-button {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    font: inherit;
+    color: var(--green-deep);
+    font-weight: 700;
+    text-decoration: none;
+    border-bottom: 1px solid var(--green);
+    cursor: pointer;
+    border-radius: 0;
+}
+.link-button:hover { opacity: 0.8; }
+
+/* ---------- README modal (rendered Markdown) ---------- */
+.modal-content-wide {
+    max-width: 760px;
+}
+.markdown-body {
+    font-size: 0.92rem;
+    line-height: 1.75;
+    color: var(--ink);
+}
+.markdown-body h1, .markdown-body h2, .markdown-body h3 {
+    color: var(--green-deep);
+    margin: 1.2em 0 0.5em;
+}
+.markdown-body h1 { font-size: 1.3rem; }
+.markdown-body h2 { font-size: 1.1rem; border-bottom: 1px solid var(--line); padding-bottom: 6px; }
+.markdown-body h3 { font-size: 1rem; }
+.markdown-body p { margin: 0.6em 0; }
+.markdown-body ul, .markdown-body ol { padding-left: 22px; margin: 0.6em 0; }
+.markdown-body li { margin: 0.25em 0; }
+.markdown-body code {
+    background: var(--stone-tint);
+    padding: 2px 6px;
+    border-radius: 6px;
+    font-size: 0.85em;
+}
+.markdown-body pre {
+    background: var(--stone-tint);
+    padding: 12px 14px;
+    border-radius: 10px;
+    overflow-x: auto;
+}
+.markdown-body pre code { background: none; padding: 0; }
+.markdown-body blockquote {
+    margin: 0.8em 0;
+    padding: 8px 14px;
+    border-left: 4px solid var(--green);
+    background: var(--green-tint);
+    color: var(--ink-soft);
+    border-radius: 0 8px 8px 0;
+}
+.markdown-body table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.8em 0;
+    font-size: 0.85rem;
+}
+.markdown-body th, .markdown-body td {
+    border: 1px solid var(--line);
+    padding: 8px 10px;
+    text-align: left;
+}
+.markdown-body th { background: var(--green-tint); color: var(--green-deep); }
+.markdown-body a { color: var(--green-deep); font-weight: 700; }
+.markdown-body hr { border: none; border-top: 1px solid var(--line); margin: 1.4em 0; }
+
 /* ---------- Bottom action bar ---------- */
 .bottom-action-bar {
     margin-top: 32px;
