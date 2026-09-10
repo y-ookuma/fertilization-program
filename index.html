@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>野菜施肥設計計算アプリ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="field-bg" aria-hidden="true"></div>
+
+    <div class="container">
+        <header class="hero">
+            <div class="hero-copy">
+                <h1>野菜施肥設計計算アプリ</h1>
+                <p class="hero-sub">土壌分析の数値を、目標のNPK・石灰・堆肥量にやさしく変換します</p>
+            </div>
+            <div class="hero-art" aria-hidden="true">
+                <svg viewBox="0 0 120 120" class="sprout-illustration">
+                    <ellipse cx="60" cy="104" rx="46" ry="9" fill="#DCEBD4"/>
+                    <path d="M60 100V52" stroke="#3F8F5F" stroke-width="5" stroke-linecap="round"/>
+                    <path d="M60 66C60 66 40 64 34 46C54 44 60 66 60 66Z" fill="#5FB37D"/>
+                    <path d="M60 54C60 54 80 50 86 30C64 30 60 54 60 54Z" fill="#3F8F5F"/>
+                    <circle cx="60" cy="46" r="10" fill="#F5B942"/>
+                    <path d="M60 36V22" stroke="#F5B942" stroke-width="4" stroke-linecap="round"/>
+                    <circle cx="60" cy="20" r="5" fill="#F2A33D"/>
+                </svg>
+            </div>
+            <button id="helpBtn" class="btn-secondary">📖 手順書</button>
+        </header>
+
+        <!-- 操作ボタンエリア -->
+        <div class="action-bar">
+            <button id="saveBtn" class="btn-primary">💾 パラメータを保存</button>
+            <button id="restoreBtn" class="btn-secondary">🔁 パラメータを復元</button>
+            <input type="file" id="restoreFileInput" accept="application/json,.json" style="display:none;">
+        </div>
+
+        <!-- 栽培作物選択 -->
+        <section class="card">
+            <h2><span class="step-dot">1</span>栽培作物の選択</h2>
+            <select id="cropSelect">
+                <option value="">-- 作物を選択してください --</option>
+            </select>
+        </section>
+
+        <!-- 土壌分析結果入力 -->
+        <section class="card">
+            <h2><span class="step-dot">2</span>土壌分析結果の入力</h2>
+            <div class="grid-form">
+                <div class="form-group">
+                    <label for="soil_ph">(1) pH (H2O)</label>
+                    <input type="number" id="soil_ph" step="0.1" placeholder="例: 6.5">
+                </div>
+                <div class="form-group">
+                    <label for="soil_ec">(2) 電気伝導度 (EC) mS/cm</label>
+                    <input type="number" id="soil_ec" step="0.01" placeholder="例: 0.40">
+                </div>
+                <div class="form-group">
+                    <label for="soil_cao">(3) 石灰 (CaO) mg/100g</label>
+                    <input type="number" id="soil_cao" step="1" placeholder="例: 150">
+                </div>
+                <div class="form-group">
+                    <label for="soil_mgo">(4) 苦土 (MgO) mg/100g</label>
+                    <input type="number" id="soil_mgo" step="1" placeholder="例: 30">
+                </div>
+                <div class="form-group">
+                    <label for="soil_k2o">(5) 加里 (K2O) mg/100g</label>
+                    <input type="number" id="soil_k2o" step="1" placeholder="例: 25">
+                </div>
+                <div class="form-group">
+                    <label for="soil_p2o5">(6) トルオーグ燐酸 mg/100g</label>
+                    <input type="number" id="soil_p2o5" step="1" placeholder="例: 40">
+                </div>
+                <div class="form-group">
+                    <label for="soil_cec">(7) CEC (推定) me</label>
+                    <input type="number" id="soil_cec" step="0.1" placeholder="例: 15.0">
+                </div>
+                <div class="form-group">
+                    <label for="soil_base_sat">(8) 塩基飽和度 %</label>
+                    <input type="number" id="soil_base_sat" step="0.1" placeholder="例: 70.0">
+                </div>
+                <div class="form-group">
+                    <label for="soil_cao_mgo_ratio">(9) 石灰/苦土比 (重)</label>
+                    <input type="number" id="soil_cao_mgo_ratio" step="0.1" placeholder="例: 5.0">
+                </div>
+                <div class="form-group">
+                    <label for="soil_mgo_k2o_ratio">(10) 苦土/加里比 (重)</label>
+                    <input type="number" id="soil_mgo_k2o_ratio" step="0.1" placeholder="例: 1.2">
+                </div>
+            </div>
+        </section>
+
+        <!-- 計算ボタン -->
+        <div class="center">
+            <button id="calcBtn" class="btn-accent">🌾 施肥設計を計算する</button>
+        </div>
+
+        <!-- 結果表示エリア -->
+        <section class="card result-card" id="resultSection" style="display: none;">
+            <div class="result-header">
+                <div class="crop-badge">
+                    <span id="resultCropEmoji" class="crop-emoji">🌱</span>
+                    <span id="resultCropName" class="crop-name">-</span>
+                </div>
+                <button id="exportPngBtn" class="btn-secondary">🖼️ 結果をPNG保存</button>
+            </div>
+
+            <div id="captureArea" class="capture-area">
+                <div class="capture-title">
+                    <span id="captureCropEmoji" class="crop-emoji">🌱</span>
+                    <div>
+                        <p id="captureCropName" class="capture-crop-name">-</p>
+                        <p class="capture-caption">10aあたりの施肥設計プラン</p>
+                    </div>
+                </div>
+
+                <h3 class="section-label">目標NPKと不足量</h3>
+                <div id="npkGrid" class="npk-grid"><!-- 動的挿入 --></div>
+
+                <h3 class="section-label">石灰・堆肥のめやす</h3>
+                <div class="advice-grid">
+                    <div class="advice-card advice-lime">
+                        <div class="advice-icon">
+                            <svg viewBox="0 0 48 48" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 34L18 14H30L36 34L24 40L12 34Z"/><path d="M18 14L24 22L30 14"/></svg>
+                        </div>
+                        <div class="advice-body">
+                            <h4>石灰資材</h4>
+                            <p id="limeAdviceText">作物を選択し、pHを入力すると目安量を計算します。</p>
+                        </div>
+                    </div>
+                    <div class="advice-card advice-compost">
+                        <div class="advice-icon">
+                            <svg viewBox="0 0 48 48" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 36C6 28 14 28 24 28C34 28 42 28 42 36"/><path d="M24 28V16"/><path d="M24 16C24 16 18 16 18 10C24 10 24 16 24 16Z"/><path d="M24 20C24 20 30 20 30 14C24 14 24 20 24 20Z"/></svg>
+                        </div>
+                        <div class="advice-body">
+                            <h4>堆肥</h4>
+                            <p id="compostAdviceText">作物を選択すると、その作物に合った堆肥のめやすを表示します。</p>
+                        </div>
+                    </div>
+                </div>
+                <p class="disclaimer">※ 石灰・堆肥の量はいずれも簡易的なめやすです。土壌診断結果や地域の施肥基準に合わせて調整してください。</p>
+            </div>
+        </section>
+    </div>
+
+    <!-- 手順書モーダル -->
+    <div id="helpModal" class="modal">
+        <div class="modal-content">
+            <span id="closeModal" class="close">&times;</span>
+            <h2>施肥設計の手順書</h2>
+            <ol>
+                <li><strong>栽培作物の選択:</strong> ライブラリから目的の作物を選びます。目標収量に応じた基本養分吸収量が自動で読み込まれます。</li>
+                <li><strong>土壌分析値の入力:</strong> 土壌分析結果の各項目（pH、EC、有効態成分など）を入力します。</li>
+                <li><strong>パラメータの保存・復元:</strong> 「パラメータを保存」を押すとファイル名を指定でき、入力中のデータを.jsonファイルとしてダウンロードできます。「パラメータを復元」を押すと保存済みのファイルを選択して読み込めるので、複数の圃場・作物の設定を使い分けられます。</li>
+                <li><strong>計算実行:</strong> 「施肥設計を計算する」ボタンを押すと、目標吸収量と土壌残存量の差引（簡易換算ロジック）による不足NPK、および石灰・堆肥のめやすが表示されます。</li>
+                <li><strong>PNG保存:</strong> 結果カード右上の「結果をPNG保存」ボタンで、作物名・NPK・石灰・堆肥のめやすを1枚の画像として保存できます。</li>
+            </ol>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
