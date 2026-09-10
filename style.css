@@ -14,6 +14,8 @@
     --stone-tint: #F2F1EC;
     --purple: #8B6FB3;
     --purple-tint: #F1ECF8;
+    --teal: #2F9C8C;
+    --teal-tint: #E5F5F2;
     --ink: #2E3B2E;
     --ink-soft: #63705F;
     --line: #E3E8DF;
@@ -259,6 +261,11 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus {
     flex-wrap: wrap;
     margin-bottom: 18px;
 }
+.result-header-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
 .crop-badge {
     display: flex;
     align-items: center;
@@ -398,6 +405,10 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus {
 
 .advice-lime { --tint: var(--stone-tint); --accent: var(--stone); }
 .advice-compost { --tint: var(--soil-tint); --accent: var(--soil); }
+.advice-nitrogen { --tint: var(--teal-tint); --accent: var(--teal); }
+
+/* ---------- Field name (圃場名) ---------- */
+.field-name-group { max-width: 360px; margin-bottom: 14px; }
 
 .disclaimer {
     margin: 16px 2px 0;
@@ -655,7 +666,8 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus {
     .hero-buttons { order: 2; flex-direction: row; width: 100%; }
     .hero-buttons button, .hero-buttons a { flex: 1; }
     .result-header { flex-direction: column; align-items: stretch; }
-    .result-header button { width: 100%; }
+    .result-header-actions { flex-direction: column; }
+    .result-header-actions button { width: 100%; }
     .fert-row { flex-direction: column; }
     .fert-row-head { padding-top: 0; }
     .flow-step .flow-label { font-size: 0.76rem; }
