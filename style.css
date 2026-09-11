@@ -16,6 +16,8 @@
     --purple-tint: #F1ECF8;
     --teal: #2F9C8C;
     --teal-tint: #E5F5F2;
+    --red: #D0453A;
+    --red-tint: #FBEAE8;
     --ink: #2E3B2E;
     --ink-soft: #63705F;
     --line: #E3E8DF;
@@ -515,7 +517,7 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus {
 /* ---------- Soil summary grid (report) ---------- */
 .soil-summary-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
     gap: 10px;
 }
 .soil-summary-item {
@@ -523,8 +525,38 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus {
     border-radius: 12px;
     padding: 10px 14px;
 }
-.soil-summary-item .label { font-size: 0.72rem; color: var(--ink-soft); display: block; margin-bottom: 2px; }
-.soil-summary-item .value { font-size: 1rem; font-weight: 700; color: var(--ink); }
+.soil-summary-item .label { font-size: 0.72rem; color: var(--ink-soft); display: block; margin-bottom: 4px; }
+.soil-summary-value-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.soil-summary-item .value { font-size: 1rem; font-weight: 700; color: var(--ink); white-space: nowrap; }
+
+.soil-badge {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+.soil-badge-low { background: var(--red-tint); color: var(--red); }
+.soil-badge-high { background: var(--sky-tint); color: var(--sky); }
+.soil-badge-ok { background: var(--green-tint); color: var(--green-deep); }
+
+.soil-badge-legend {
+    margin: 10px 2px 0;
+    font-size: 0.76rem;
+    color: var(--ink-soft);
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
 
 .report-compost-text {
     font-size: 0.88rem;
