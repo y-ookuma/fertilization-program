@@ -182,6 +182,46 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('closeReadmeModal').addEventListener('click', () => readmeModal.style.display = 'none');
     window.addEventListener('click', (e) => { if (e.target === readmeModal) readmeModal.style.display = 'none'; });
 
+    // ---------- 作物別基肥一覧モーダル ----------
+    const cropListModal = document.getElementById('cropListModal');
+
+    function buildCropListTableHTML() {
+        const rows = fertilizerLibrary.crops.map(crop => {
+            const tN = crop.nutrient_absorption_kg_10a.n * crop.standard_basal_ratio.n;
+            const tP = crop.nutrient_absorption_kg_10a.p2o5 * crop.standard_basal_ratio.p2o5;
+            const tK = crop.nutrient_absorption_kg_10a.k2o * crop.standard_basal_ratio.k2o;
+            return `
+                <tr>
+                    <td class="fert-name-cell">${crop.emoji} ${crop.name}</td>
+                    <td>${categoryLabel[crop.category] || ''}</td>
+                    <td>${tN.toFixed(1)}</td>
+                    <td>${tP.toFixed(1)}</td>
+                    <td>${tK.toFixed(1)}</td>
+                </tr>
+            `;
+        }).join('');
+
+        return `
+            <table class="fert-table">
+                <thead>
+                    <tr>
+                        <th>作物名</th>
+                        <th>分類</th>
+                        <th>目標N(kg)</th>
+                        <th>目標P2O5(kg)</th>
+                        <th>目標K2O(kg)</th>
+                    </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+            </table>
+        `;
+    }
+    document.getElementById('cropListTable').innerHTML = buildCropListTableHTML();
+
+    document.getElementById('cropListBtn').addEventListener('click', () => cropListModal.style.display = 'block');
+    document.getElementById('closeCropListModal').addEventListener('click', () => cropListModal.style.display = 'none');
+    window.addEventListener('click', (e) => { if (e.target === cropListModal) cropListModal.style.display = 'none'; });
+
     // ---------- フロー図（1→2→3）の状態表示 ----------
     function setFlowStep(activeStep) {
         document.querySelectorAll('.flow-step').forEach(el => {
@@ -251,7 +291,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 cec: document.getElementById('soil_cec').value,
                 base_sat: document.getElementById('soil_base_sat').value,
                 cao_mgo_ratio: document.getElementById('soil_cao_mgo_ratio').value,
-                mgo_k2o_ratio: document.getElementById('soil_mgo_k2o_ratio').value
+                mgo_k2o_ratio: document.getElementById('soil_mgo_k2o_ratio').value,
+                no3n: document.getElementById('soil_no3n').value
             },
             area: {
                 value: document.getElementById('areaValue').value,
@@ -276,6 +317,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('soil_base_sat').value = data.soil.base_sat || '';
         document.getElementById('soil_cao_mgo_ratio').value = data.soil.cao_mgo_ratio || '';
         document.getElementById('soil_mgo_k2o_ratio').value = data.soil.mgo_k2o_ratio || '';
+        document.getElementById('soil_no3n').value = data.soil.no3n || '';
 
         if (data.area) {
             document.getElementById('areaValue').value = data.area.value || '';
@@ -429,26 +471,40 @@ document.addEventListener('DOMContentLoaded', () => {
         return `【${categoryLabel[crop.category] || ''}】完熟堆肥 ${range.min}〜${range.max} t/10a が目安です（今回の面積では 約${totalMin}〜${totalMax} t）。${range.note}`;
     }
 
-    // ECから推定硝酸態窒素量・残存窒素量を算出する
-    // 硝酸態窒素の実測値がない場合の簡易推定として、電気伝導度(EC)を用いる。
-    function estimateResidualNitrogen(ecInput) {
-        const ec = (isNaN(ecInput) || ecInput <= 0) ? DEFAULT_EC : ecInput;
+    // 残存窒素量を算出する。
+    // (11)推定硝酸態窒素の入力があればそれを優先し、未入力の場合のみ電気伝導度(EC)から推定する。
+    function estimateResidualNitrogen(no3nInput, ecInput) {
+        const hasNo3n = !isNaN(no3nInput) && no3nInput >= 0;
+
+        if (hasNo3n) {
+            const no3n_mg100g = no3nInput;
+            const residualN = no3n_mg100g * MG100G_TO_KG10A;
+            return { source: 'measured', no3n_mg100g, residualN, ec: null, usedDefaultEc: false };
+        }
+
+        const usedDefaultEc = isNaN(ecInput) || ecInput <= 0;
+        const ec = usedDefaultEc ? DEFAULT_EC : ecInput;
         const no3n_mg100g = ec * EC_TO_NO3N_MG100G;
         const residualN = no3n_mg100g * MG100G_TO_KG10A;
-        return { ec, no3n_mg100g, residualN, usedDefault: isNaN(ecInput) || ecInput <= 0 };
+        return { source: 'ec', no3n_mg100g, residualN, ec, usedDefaultEc };
     }
 
     // 窒素残存量の算定方法アドバイス文
     function buildNitrogenAdviceText(nEstimate) {
-        const ecText = nEstimate.usedDefault
-            ? `ECが未入力のため仮の値(${DEFAULT_EC.toFixed(2)} mS/cm)で計算しています`
-            : `入力されたEC ${nEstimate.ec.toFixed(2)} mS/cm から算出しています`;
-        return `硝酸態窒素の実測値がないため、${ecText}。推定硝酸態窒素 約${nEstimate.no3n_mg100g.toFixed(1)} mg/100g → 残存窒素 約${nEstimate.residualN.toFixed(1)} kg/10a として計算に使用します。硝酸態窒素の実測値がある場合は、より正確な値に置き換えることをおすすめします。`;
+        let methodText;
+        if (nEstimate.source === 'measured') {
+            methodText = `(11)推定硝酸態窒素の入力値 ${nEstimate.no3n_mg100g.toFixed(1)} mg/100g を使用しています`;
+        } else if (nEstimate.usedDefaultEc) {
+            methodText = `(11)推定硝酸態窒素・ECともに未入力のため、仮の値(EC=${DEFAULT_EC.toFixed(2)} mS/cm)で推定しています`;
+        } else {
+            methodText = `(11)推定硝酸態窒素が未入力のため、入力されたEC ${nEstimate.ec.toFixed(2)} mS/cm から推定しています`;
+        }
+        return `${methodText}。推定硝酸態窒素 約${nEstimate.no3n_mg100g.toFixed(1)} mg/100g → 残存窒素 約${nEstimate.residualN.toFixed(1)} kg/10a として計算に使用します。`;
     }
 
     // 作物・土壌値から5養分（N/P/K/CaO/MgO）の目標・残存・不足（10aあたり）を算出
     function calcBaseNutrients(crop, soil) {
-        const nEstimate = estimateResidualNitrogen(soil.ec);
+        const nEstimate = estimateResidualNitrogen(soil.no3n, soil.ec);
 
         const targetN = crop.nutrient_absorption_kg_10a.n * crop.standard_basal_ratio.n;
         const targetP = crop.nutrient_absorption_kg_10a.p2o5 * crop.standard_basal_ratio.p2o5;
@@ -604,7 +660,8 @@ document.addEventListener('DOMContentLoaded', () => {
             cec: document.getElementById('soil_cec').value,
             base_sat: document.getElementById('soil_base_sat').value,
             cao_mgo_ratio: parseFloat(document.getElementById('soil_cao_mgo_ratio').value),
-            mgo_k2o_ratio: document.getElementById('soil_mgo_k2o_ratio').value
+            mgo_k2o_ratio: document.getElementById('soil_mgo_k2o_ratio').value,
+            no3n: parseFloat(document.getElementById('soil_no3n').value)
         };
 
         const soilSnapshot = {
@@ -617,7 +674,8 @@ document.addEventListener('DOMContentLoaded', () => {
             cec: document.getElementById('soil_cec').value || '-',
             base_sat: document.getElementById('soil_base_sat').value || '-',
             cao_mgo_ratio: document.getElementById('soil_cao_mgo_ratio').value || '-',
-            mgo_k2o_ratio: document.getElementById('soil_mgo_k2o_ratio').value || '-'
+            mgo_k2o_ratio: document.getElementById('soil_mgo_k2o_ratio').value || '-',
+            no3n: document.getElementById('soil_no3n').value || '-'
         };
 
         const base = calcBaseNutrients(crop, soil);
@@ -697,11 +755,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const ha = areaM2 / 10000;
         const fieldName = document.getElementById('fieldName').value.trim();
 
-        // バッジ・タイトル
+        // バッジ・タイトル（作成日は栽培作物名の右側に表示し、PNG/PDF出力にも含まれる）
         document.getElementById('reportCropEmoji').textContent = crop.emoji;
         document.getElementById('reportCropName').textContent = fieldName ? `${crop.name}（${fieldName}）` : crop.name;
         document.getElementById('captureCropEmoji').textContent = crop.emoji;
         document.getElementById('captureCropName').textContent = `${crop.emoji} ${crop.name}`;
+        document.getElementById('captureDateBadge').textContent = `作成日: ${todayStamp()}`;
         document.getElementById('captureAreaCaption').textContent =
             (fieldName ? `圃場名：${fieldName} ／ ` : '') +
             `面積：${areaM2.toLocaleString('ja-JP', { maximumFractionDigits: 1 })} ㎡（${a.toFixed(2)} a ／ ${ha.toFixed(3)} ha）`;
@@ -717,7 +776,8 @@ document.addEventListener('DOMContentLoaded', () => {
             { key: 'cec', label: 'CEC (me)' },
             { key: 'base_sat', label: '塩基飽和度 (%)' },
             { key: 'cao_mgo_ratio', label: '石灰/苦土比' },
-            { key: 'mgo_k2o_ratio', label: '苦土/加里比' }
+            { key: 'mgo_k2o_ratio', label: '苦土/加里比' },
+            { key: 'no3n', label: '推定硝酸態窒素 (mg/100g)' }
         ];
         document.getElementById('soilSummaryGrid').innerHTML = soilLabels.map(item => `
             <div class="soil-summary-item">
@@ -746,27 +806,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // ---------- 結果の画像化（PNG・PDF共通） ----------
     const CAPTURE_RENDER_SCALE = 2;
 
-    // 作成日(右上)・ライセンス表記(右下)をcanvasに印字する
+    // ライセンス表記(右下)をcanvasに印字する
+    // 作成日は栽培作物名の右側（#captureDateBadge）としてHTML側に描画済みのため、
+    // html2canvasでの撮影時に自動的に含まれる。ここでは重複させないためライセンス表記のみ追加する。
     function stampCaptureCanvas(canvas) {
         const ctx = canvas.getContext('2d');
         const scale = CAPTURE_RENDER_SCALE;
         const padding = 16 * scale;
         const fontSize = 13 * scale;
-        const now = new Date();
-        const pad = (n) => String(n).padStart(2, '0');
-        const dateStr = `作成日: ${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
 
         ctx.font = `bold ${fontSize}px "Noto Sans JP", "Hiragino Sans", Arial, sans-serif`;
         ctx.textAlign = 'right';
-
-        // 右上：作成日
-        const dateWidth = ctx.measureText(dateStr).width;
-        const topBlockHeight = fontSize * 1.3 + padding * 0.6;
-        ctx.fillStyle = 'rgba(253, 254, 252, 0.94)';
-        ctx.fillRect(canvas.width - dateWidth - padding * 2, 0, dateWidth + padding * 2, topBlockHeight);
-        ctx.textBaseline = 'top';
-        ctx.fillStyle = '#2E3B2E';
-        ctx.fillText(dateStr, canvas.width - padding, padding * 0.4);
 
         // 右下：ライセンス表記
         const footerLines = [
@@ -790,13 +840,25 @@ document.addEventListener('DOMContentLoaded', () => {
         return canvas;
     }
 
-    // captureAreaを撮影し、スタンプ済みcanvasを返す（フォント読み込み待ち込み）
+    // captureAreaを撮影し、スタンプ済みcanvasを返す（フォント読み込み待ち。読み込みが長引いても2秒でタイムアウトして進む）
     function generateStampedCaptureCanvas() {
         const target = document.getElementById('captureArea');
-        const fontsReady = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
+        const fontsReadyPromise = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
+        const timeoutPromise = new Promise(resolve => setTimeout(resolve, 2000));
+        const fontsReady = Promise.race([fontsReadyPromise, timeoutPromise]);
+
+        console.log('[施肥設計書] 画像化を開始します…');
         return fontsReady
-            .then(() => html2canvas(target, { backgroundColor: '#FDFEFC', scale: CAPTURE_RENDER_SCALE }))
-            .then(canvas => stampCaptureCanvas(canvas));
+            .then(() => {
+                console.log('[施肥設計書] フォント待ち完了。html2canvasで撮影します…');
+                return html2canvas(target, { backgroundColor: '#FDFEFC', scale: CAPTURE_RENDER_SCALE });
+            })
+            .then(canvas => {
+                console.log(`[施肥設計書] 撮影完了 (${canvas.width}x${canvas.height})。作成日・ライセンスを印字します…`);
+                const stamped = stampCaptureCanvas(canvas);
+                console.log('[施肥設計書] 印字完了。');
+                return stamped;
+            });
     }
 
     // ---------- PNG出力 ----------
