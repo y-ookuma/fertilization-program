@@ -242,11 +242,17 @@
 
                 <h3 class="section-label">土壌分析結果</h3>
                 <div id="soilSummaryGrid" class="soil-summary-grid"></div>
+                <p id="soilBadgeLegend" class="soil-badge-legend" style="display: none;">
+                    <span class="soil-badge soil-badge-low">↓不足</span>
+                    <span class="soil-badge soil-badge-high">↑過剰</span>
+                    <span class="soil-badge soil-badge-ok">✓ 適正</span>
+                    は、それぞれの項目の目安値との差を表します。N・P2O5・K2O・CaO・MgOはkg/10a換算の不足・過剰量も併記しています。
+                </p>
 
                 <h3 class="section-label">目標・不足・投入量（N・P・K・石灰・苦土）</h3>
                 <div id="finalReportNpkGrid" class="npk-grid"></div>
 
-                <h3 class="section-label">使用した肥料の詳細</h3>
+                <h3 class="section-label">使用する肥料の詳細</h3>
                 <div id="finalReportFertTable" class="table-scroll"></div>
 
                 <h3 class="section-label">堆肥のめやす</h3>
@@ -280,6 +286,7 @@
                 <li><strong>(2) 施肥結果 ― 圃場の入力:</strong> 圃場名（任意）と面積（㎡・a・haのいずれか）を入力すると、目標値・不足量が実際の面積に換算されます（面積が未入力の場合は10a=1,000㎡として計算）。</li>
                 <li><strong>(2) 施肥結果 ― 使用する肥料の入力:</strong> 実際に使う肥料を最大8種類まで登録できます。肥料名・N/P2O5/K2O/CaO/MgO(%)・1袋の重量(kg)・今回投入量(kg)を入力し、「投入量を計算する」を押すと、肥料ごとの袋数と、8種類を合算した目標・投入・過不足が表示されます。</li>
                 <li><strong>(2) 施肥結果 ― 施肥設計完了:</strong> 「施肥設計完了」を押すと、(3)施肥量に圃場名・作物・面積・土壌分析結果・肥料の詳細・最終的な目標／不足／投入量がまとめて表示されます。栽培作物名の右側には作成日が表示され、PNG・PDF保存時にもそのまま出力されます。</li>
+                <li><strong>(3) 施肥量 ― 土壌分析結果の過不足表示:</strong> 各項目の数値の右側に、目安値と比べて不足なら「↓◯◯%」、過剰なら「↑◯◯%」、適正なら「✓ 適正」のバッジが色分けして表示されます。N・P2O5・K2O・CaO(石灰)・MgO(苦土)は不足・過剰量(kg)も併記されます。</li>
                 <li><strong>(3) 施肥量 ― PNG・PDF保存:</strong> 「結果をPNG保存」「結果をPDF保存」ボタンで、施肥設計書の内容をそれぞれ画像・PDFとして保存できます。どちらも右上に作成日、右下にライセンス表記が入ります。</li>
                 <li><strong>作物別基肥一覧:</strong> ヘッダーの「🌱 作物別基肥一覧」ボタンで、ライブラリに登録された30品目すべての基肥目標量（N・P2O5・K2O、10aあたり）を一覧表示できます。</li>
                 <li><strong>パラメータの保存・復元:</strong> ページ上部・下部どちらの「パラメータを保存」からもファイル名を指定して.jsonファイルをダウンロードできます。作物・土壌分析値・面積・8種類の肥料情報がすべて含まれます。「パラメータを復元」でファイルを選択して読み込めます。</li>
