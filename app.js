@@ -848,8 +848,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ---------- 結果の画像化（PNG・PDF共通、A4レイアウトに合わせて出力） ----------
-    const A4_WIDTH_MM = 210;
-    const A4_HEIGHT_MM = 297;
+    const A4_WIDTH_MM = 210;  // A4縦
+    const A4_HEIGHT_MM = 297; // A4縦
     const EXPORT_DPI = 200; // 出力解像度の目安（約200dpi）
     const PX_PER_MM = EXPORT_DPI / 25.4;
     const A4_WIDTH_PX = Math.round(A4_WIDTH_MM * PX_PER_MM);
@@ -893,6 +893,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const source = document.getElementById('captureArea');
         const clone = source.cloneNode(true);
         clone.removeAttribute('id');
+        clone.classList.add('a4-export');
         clone.style.width = `${A4_WIDTH_PX}px`;
         clone.style.maxWidth = 'none';
         clone.style.boxSizing = 'border-box';
@@ -905,7 +906,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // captureAreaをA4幅で撮影し、スタンプ済みcanvasを返す（フォント読み込み待ち。読み込みが長引いても2秒でタイムアウトして進む）
-    // 返されるcanvasは横幅がA4(210mm)固定、縦はA4何ページ分に相当する内容の長さになる。
+    // 返されるcanvasは横幅がA4横(297mm)固定、縦はA4何ページ分に相当する内容の長さになる。
     function generateA4ReportCanvas() {
         const fontsReadyPromise = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
         const timeoutPromise = new Promise(resolve => setTimeout(resolve, 2000));
@@ -937,7 +938,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     }
 
-    // ---------- PNG出力（A4幅の1枚画像。内容が長い場合は縦に長い画像になる） ----------
+    // ---------- PNG出力（A4横幅の画像。内容が長い場合は縦に長い画像になる） ----------
     document.getElementById('exportPngBtn').addEventListener('click', () => {
         if (typeof html2canvas === 'undefined') {
             alert('PNG出力機能の読み込みに失敗しました。通信環境をご確認のうえ再度お試しください。');
