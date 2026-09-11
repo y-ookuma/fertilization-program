@@ -33,6 +33,7 @@
             <div class="hero-buttons">
                 <button id="helpBtn" class="btn-secondary">📖 手順書</button>
                 <button id="readmeBtn" class="btn-secondary">📄 README</button>
+                <button id="cropListBtn" class="btn-secondary">🌱 作物別基肥一覧</button>
             </div>
         </header>
 
@@ -118,6 +119,10 @@
                     <label for="soil_mgo_k2o_ratio">(10) 苦土/加里比 (重)</label>
                     <input type="number" id="soil_mgo_k2o_ratio" step="0.1" placeholder="例: 1.2">
                 </div>
+                <div class="form-group">
+                    <label for="soil_no3n">(11) 推定硝酸態窒素 (mg/100g)</label>
+                    <input type="number" id="soil_no3n" step="0.1" placeholder="例: 12.0（未入力ならECから推定）">
+                </div>
             </div>
 
             <div class="center">
@@ -148,7 +153,7 @@
                     </div>
                     <div class="advice-body">
                         <h4>窒素(N)残存量の算定方法</h4>
-                        <p id="nitrogenAdviceText">硝酸態窒素の実測値がないため、電気伝導度(EC)から残存窒素量を推定します。</p>
+                        <p id="nitrogenAdviceText">(11)推定硝酸態窒素の入力があればそれを優先し、未入力の場合は電気伝導度(EC)から残存窒素量を推定します。</p>
                     </div>
                 </div>
                 <div class="advice-card advice-compost">
@@ -228,10 +233,11 @@
             <div id="captureArea" class="capture-area">
                 <div class="capture-title">
                     <span id="captureCropEmoji" class="crop-emoji">🌱</span>
-                    <div>
+                    <div class="capture-title-text">
                         <p id="captureCropName" class="capture-crop-name">-</p>
                         <p id="captureAreaCaption" class="capture-caption">施肥設計書</p>
                     </div>
+                    <span id="captureDateBadge" class="report-date-badge">作成日: -</span>
                 </div>
 
                 <h3 class="section-label">土壌分析結果</h3>
@@ -269,12 +275,13 @@
             <h2>施肥設計の手順書</h2>
             <ol>
                 <li><strong>(1) 土壌分析 ― 栽培作物の選択:</strong> ライブラリから目的の作物を選びます。目標収量に応じた基本養分吸収量が自動で読み込まれます。</li>
-                <li><strong>(1) 土壌分析 ― 土壌分析値の入力:</strong> 土壌分析結果の各項目（pH、EC、有効態成分など）を入力し、「施肥計算をする」を押します。</li>
-                <li><strong>(2) 施肥結果 ― 目標値の確認:</strong> N・P・K・石灰(CaO)・苦土(MgO)それぞれの目標値・残存量・不足量が表示されます。硝酸態窒素の実測値がないため、窒素(N)の残存量は電気伝導度(EC)から推定します。堆肥や石灰・苦土資材のめやすも合わせて表示されます。</li>
+                <li><strong>(1) 土壌分析 ― 土壌分析値の入力:</strong> 土壌分析結果の各項目（pH、EC、有効態成分など）を入力し、「施肥計算をする」を押します。(11)推定硝酸態窒素が分かる場合は入力してください。未入力の場合はEC(電気伝導度)から自動推定します。</li>
+                <li><strong>(2) 施肥結果 ― 目標値の確認:</strong> N・P・K・石灰(CaO)・苦土(MgO)それぞれの目標値・残存量・不足量が表示されます。窒素(N)の残存量は、(11)推定硝酸態窒素の入力があればその値を優先し、未入力の場合のみ電気伝導度(EC)から推定します。堆肥や石灰・苦土資材のめやすも合わせて表示されます。</li>
                 <li><strong>(2) 施肥結果 ― 圃場の入力:</strong> 圃場名（任意）と面積（㎡・a・haのいずれか）を入力すると、目標値・不足量が実際の面積に換算されます（面積が未入力の場合は10a=1,000㎡として計算）。</li>
                 <li><strong>(2) 施肥結果 ― 使用する肥料の入力:</strong> 実際に使う肥料を最大8種類まで登録できます。肥料名・N/P2O5/K2O/CaO/MgO(%)・1袋の重量(kg)・今回投入量(kg)を入力し、「投入量を計算する」を押すと、肥料ごとの袋数と、8種類を合算した目標・投入・過不足が表示されます。</li>
-                <li><strong>(2) 施肥結果 ― 施肥設計完了:</strong> 「施肥設計完了」を押すと、(3)施肥量に圃場名・作物・面積・土壌分析結果・肥料の詳細・最終的な目標／不足／投入量がまとめて表示されます。</li>
+                <li><strong>(2) 施肥結果 ― 施肥設計完了:</strong> 「施肥設計完了」を押すと、(3)施肥量に圃場名・作物・面積・土壌分析結果・肥料の詳細・最終的な目標／不足／投入量がまとめて表示されます。栽培作物名の右側には作成日が表示され、PNG・PDF保存時にもそのまま出力されます。</li>
                 <li><strong>(3) 施肥量 ― PNG・PDF保存:</strong> 「結果をPNG保存」「結果をPDF保存」ボタンで、施肥設計書の内容をそれぞれ画像・PDFとして保存できます。どちらも右上に作成日、右下にライセンス表記が入ります。</li>
+                <li><strong>作物別基肥一覧:</strong> ヘッダーの「🌱 作物別基肥一覧」ボタンで、ライブラリに登録された30品目すべての基肥目標量（N・P2O5・K2O、10aあたり）を一覧表示できます。</li>
                 <li><strong>パラメータの保存・復元:</strong> ページ上部・下部どちらの「パラメータを保存」からもファイル名を指定して.jsonファイルをダウンロードできます。作物・土壌分析値・面積・8種類の肥料情報がすべて含まれます。「パラメータを復元」でファイルを選択して読み込めます。</li>
             </ol>
             <p class="modal-readme-link">詳しい計算式やQ&amp;Aは <button id="readmeInlineLink" class="link-button">README.md</button> をご覧ください。</p>
@@ -286,6 +293,16 @@
         <div class="modal-content modal-content-wide">
             <span id="closeReadmeModal" class="close">&times;</span>
             <div id="readmeContent" class="markdown-body">読み込み中...</div>
+        </div>
+    </div>
+
+    <!-- 作物別基肥一覧モーダル -->
+    <div id="cropListModal" class="modal">
+        <div class="modal-content modal-content-wide">
+            <span id="closeCropListModal" class="close">&times;</span>
+            <h2>作物別 基肥一覧（10aあたり）</h2>
+            <p class="disclaimer">「目標N・P2O5・K2O」は、各作物の養分吸収量×標準元肥比率から算出した基肥（元肥）の目安量です。石灰(CaO)・苦土(MgO)の目標値はすべての作物で共通（目安：CaO 45kg/10a、MgO 6kg/10a）のため、この一覧には含めていません。</p>
+            <div class="table-scroll" id="cropListTable"></div>
         </div>
     </div>
 
