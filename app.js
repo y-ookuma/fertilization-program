@@ -913,6 +913,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const fontsReady = Promise.race([fontsReadyPromise, timeoutPromise]);
 
         console.log(`[施肥設計書] A4レイアウト(幅${A4_WIDTH_PX}px)で画像化を開始します…`);
+
+        // 画面表示は70%だが、PNG/PDF出力時は従来の100%フォントサイズで描画する
+        const rootFontSizeBeforeExport = document.documentElement.style.fontSize;
+        document.documentElement.style.fontSize = '100%';
         const clone = buildA4Clone();
 
         return fontsReady
@@ -927,6 +931,7 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .then(canvas => {
                 document.body.removeChild(clone);
+                document.documentElement.style.fontSize = rootFontSizeBeforeExport;
                 console.log(`[施肥設計書] 撮影完了 (${canvas.width}x${canvas.height})。ライセンスを印字します…`);
                 const stamped = stampCaptureCanvas(canvas);
                 console.log('[施肥設計書] 印字完了。');
@@ -934,6 +939,7 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .catch(err => {
                 if (clone.parentNode) document.body.removeChild(clone);
+                document.documentElement.style.fontSize = rootFontSizeBeforeExport;
                 throw err;
             });
     }
