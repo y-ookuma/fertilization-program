@@ -1,3 +1,13 @@
+
+/* ---------- 画面表示：フォントを現状の70%に縮小 ---------- */
+@media screen {
+    html { font-size: 70%; }
+}
+
+/* 印刷時は従来のフォントサイズを維持 */
+@media print {
+    html { font-size: 100%; }
+}
 :root {
     --cream: #FBF6EC;
     --card: #FFFFFF;
