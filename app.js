@@ -70,7 +70,18 @@ const TARGET_CAO_MG100G = 300;     // 石灰(CaO)の目安値 mg/100g
 const TARGET_MGO_MG100G = 40;      // 苦土(MgO)の目安値 mg/100g
 const EC_TO_NO3N_MG100G = 80;      // EC(mS/cm) → 推定硝酸態窒素(mg/100g) の簡易換算係数
 const DEFAULT_EC = 0.3;            // ECが未入力の場合に仮定する値 (mS/cm)
+const DEFAULT_TARGET_PH = 6.3;     // pHの目安値（作物にtargetPhの指定がない場合）
 const FERT_COUNT = 8;
+
+// 土壌分析結果の「過不足バッジ」用の目安値（N・P2O5・K2O・CaO・MgOは別途5養分の目標値を使用する）
+const SOIL_ITEM_REFERENCE = {
+    ec: 0.4,            // 電気伝導度 (mS/cm) の目安値
+    cec: 15,            // CEC (me) の目安値
+    base_sat: 75,       // 塩基飽和度 (%) の目安値
+    cao_mgo_ratio: 5,   // 石灰/苦土比の目安値
+    mgo_k2o_ratio: 2    // 苦土/加里比の目安値
+};
+const SOIL_BADGE_TOLERANCE_PCT = 5; // 目安値との差がこの割合未満なら「適正」とみなす
 
 const NUTRIENT_DEFS = [
     { key: 'n',   label: '窒素 (N)',       sub: '葉と茎を育てる' },
@@ -471,6 +482,34 @@ document.addEventListener('DOMContentLoaded', () => {
         return `【${categoryLabel[crop.category] || ''}】完熟堆肥 ${range.min}〜${range.max} t/10a が目安です（今回の面積では 約${totalMin}〜${totalMax} t）。${range.note}`;
     }
 
+    // ---------- 土壌分析結果の過不足バッジ ----------
+    // pH・EC・CEC・塩基飽和度・石灰/苦土比・苦土/加里比など、kg換算の意味を持たない項目用：
+    // 目安値との差を%のみで表示する（適正範囲内なら「✓ 適正」）。
+    function buildDeviationBadge(measured, target) {
+        if (isNaN(measured) || isNaN(target) || target === 0) return '';
+        const diffPct = ((measured - target) / target) * 100;
+        if (Math.abs(diffPct) < SOIL_BADGE_TOLERANCE_PCT) {
+            return '<span class="soil-badge soil-badge-ok">✓ 適正</span>';
+        }
+        return diffPct < 0
+            ? `<span class="soil-badge soil-badge-low">↓${Math.abs(diffPct).toFixed(0)}%</span>`
+            : `<span class="soil-badge soil-badge-high">↑${diffPct.toFixed(0)}%</span>`;
+    }
+
+    // N・P2O5・K2O・CaO・MgOなど、すでに目標・残存(kg/10a換算後)が計算済みの養分用：
+    // %と合わせて不足・過剰のkgも表示する。nutrientScaled = { target, residual, deficit }（面積換算済み）
+    function buildNutrientBadge(nutrientScaled) {
+        if (!nutrientScaled || nutrientScaled.target <= 0) return '';
+        const diffPct = ((nutrientScaled.residual - nutrientScaled.target) / nutrientScaled.target) * 100;
+        const diffKg = nutrientScaled.residual - nutrientScaled.target;
+        if (Math.abs(diffPct) < SOIL_BADGE_TOLERANCE_PCT) {
+            return '<span class="soil-badge soil-badge-ok">✓ 適正</span>';
+        }
+        return diffPct < 0
+            ? `<span class="soil-badge soil-badge-low">↓${Math.abs(diffPct).toFixed(0)}%(${Math.abs(diffKg).toFixed(1)}kg)</span>`
+            : `<span class="soil-badge soil-badge-high">↑${diffPct.toFixed(0)}%(${diffKg.toFixed(1)}kg)</span>`;
+    }
+
     // 残存窒素量を算出する。
     // (11)推定硝酸態窒素の入力があればそれを優先し、未入力の場合のみ電気伝導度(EC)から推定する。
     function estimateResidualNitrogen(no3nInput, ecInput) {
@@ -657,10 +696,10 @@ document.addEventListener('DOMContentLoaded', () => {
             mgo: parseFloat(document.getElementById('soil_mgo').value) || 0,
             k2o: parseFloat(document.getElementById('soil_k2o').value) || 0,
             p2o5: parseFloat(document.getElementById('soil_p2o5').value) || 0,
-            cec: document.getElementById('soil_cec').value,
-            base_sat: document.getElementById('soil_base_sat').value,
+            cec: parseFloat(document.getElementById('soil_cec').value),
+            base_sat: parseFloat(document.getElementById('soil_base_sat').value),
             cao_mgo_ratio: parseFloat(document.getElementById('soil_cao_mgo_ratio').value),
-            mgo_k2o_ratio: document.getElementById('soil_mgo_k2o_ratio').value,
+            mgo_k2o_ratio: parseFloat(document.getElementById('soil_mgo_k2o_ratio').value),
             no3n: parseFloat(document.getElementById('soil_no3n').value)
         };
 
@@ -765,26 +804,31 @@ document.addEventListener('DOMContentLoaded', () => {
             (fieldName ? `圃場名：${fieldName} ／ ` : '') +
             `面積：${areaM2.toLocaleString('ja-JP', { maximumFractionDigits: 1 })} ㎡（${a.toFixed(2)} a ／ ${ha.toFixed(3)} ha）`;
 
-        // 土壌分析結果サマリー
+        // 土壌分析結果サマリー（各項目の右側に目安値との過不足バッジを表示）
+        const targetPh = crop.targetPh || DEFAULT_TARGET_PH;
         const soilLabels = [
-            { key: 'ph', label: 'pH (H2O)' },
-            { key: 'ec', label: 'EC (mS/cm)' },
-            { key: 'cao', label: '石灰 CaO (mg/100g)' },
-            { key: 'mgo', label: '苦土 MgO (mg/100g)' },
-            { key: 'k2o', label: '加里 K2O (mg/100g)' },
-            { key: 'p2o5', label: 'トルオーグ燐酸 (mg/100g)' },
-            { key: 'cec', label: 'CEC (me)' },
-            { key: 'base_sat', label: '塩基飽和度 (%)' },
-            { key: 'cao_mgo_ratio', label: '石灰/苦土比' },
-            { key: 'mgo_k2o_ratio', label: '苦土/加里比' },
-            { key: 'no3n', label: '推定硝酸態窒素 (mg/100g)' }
+            { key: 'ph', label: 'pH (H2O)', badge: buildDeviationBadge(lastCalc.soil.ph, targetPh) },
+            { key: 'ec', label: 'EC (mS/cm)', badge: buildDeviationBadge(lastCalc.soil.ec, SOIL_ITEM_REFERENCE.ec) },
+            { key: 'cao', label: '石灰 CaO (mg/100g)', badge: buildNutrientBadge(scaled.cao) },
+            { key: 'mgo', label: '苦土 MgO (mg/100g)', badge: buildNutrientBadge(scaled.mgo) },
+            { key: 'k2o', label: '加里 K2O (mg/100g)', badge: buildNutrientBadge(scaled.k) },
+            { key: 'p2o5', label: 'トルオーグ燐酸 (mg/100g)', badge: buildNutrientBadge(scaled.p) },
+            { key: 'cec', label: 'CEC (me)', badge: buildDeviationBadge(lastCalc.soil.cec, SOIL_ITEM_REFERENCE.cec) },
+            { key: 'base_sat', label: '塩基飽和度 (%)', badge: buildDeviationBadge(lastCalc.soil.base_sat, SOIL_ITEM_REFERENCE.base_sat) },
+            { key: 'cao_mgo_ratio', label: '石灰/苦土比', badge: buildDeviationBadge(lastCalc.soil.cao_mgo_ratio, SOIL_ITEM_REFERENCE.cao_mgo_ratio) },
+            { key: 'mgo_k2o_ratio', label: '苦土/加里比', badge: buildDeviationBadge(lastCalc.soil.mgo_k2o_ratio, SOIL_ITEM_REFERENCE.mgo_k2o_ratio) },
+            { key: 'no3n', label: '推定硝酸態窒素 (mg/100g)', badge: buildNutrientBadge(scaled.n) }
         ];
         document.getElementById('soilSummaryGrid').innerHTML = soilLabels.map(item => `
             <div class="soil-summary-item">
                 <span class="label">${item.label}</span>
-                <span class="value">${lastCalc.soilSnapshot[item.key]}</span>
+                <div class="soil-summary-value-row">
+                    <span class="value">${lastCalc.soilSnapshot[item.key]}</span>
+                    ${item.badge}
+                </div>
             </div>
         `).join('');
+        document.getElementById('soilBadgeLegend').style.display = 'block';
 
         // 目標・不足・投入量カード
         const finalHtml = NUTRIENT_DEFS.map(def =>
