@@ -847,17 +847,20 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('section3').scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
 
-    // ---------- 結果の画像化（PNG・PDF共通） ----------
-    const CAPTURE_RENDER_SCALE = 2;
+    // ---------- 結果の画像化（PNG・PDF共通、A4レイアウトに合わせて出力） ----------
+    const A4_WIDTH_MM = 210;
+    const A4_HEIGHT_MM = 297;
+    const EXPORT_DPI = 200; // 出力解像度の目安（約200dpi）
+    const PX_PER_MM = EXPORT_DPI / 25.4;
+    const A4_WIDTH_PX = Math.round(A4_WIDTH_MM * PX_PER_MM);
 
     // ライセンス表記(右下)をcanvasに印字する
     // 作成日は栽培作物名の右側（#captureDateBadge）としてHTML側に描画済みのため、
     // html2canvasでの撮影時に自動的に含まれる。ここでは重複させないためライセンス表記のみ追加する。
     function stampCaptureCanvas(canvas) {
         const ctx = canvas.getContext('2d');
-        const scale = CAPTURE_RENDER_SCALE;
-        const padding = 16 * scale;
-        const fontSize = 13 * scale;
+        const padding = 5 * PX_PER_MM;
+        const fontSize = 3.2 * PX_PER_MM;
 
         ctx.font = `bold ${fontSize}px "Noto Sans JP", "Hiragino Sans", Arial, sans-serif`;
         ctx.textAlign = 'right';
@@ -867,7 +870,7 @@ document.addEventListener('DOMContentLoaded', () => {
             'This project is licensed under the BSD 3-Clause License.',
             'Copyright (c) 2026 y-ookuma'
         ];
-        const lineHeight = 18 * scale;
+        const lineHeight = 4.2 * PX_PER_MM;
         const bottomBlockHeight = lineHeight * footerLines.length + padding * 0.8;
         ctx.fillStyle = 'rgba(253, 254, 252, 0.94)';
         ctx.fillRect(0, canvas.height - bottomBlockHeight, canvas.width, bottomBlockHeight);
@@ -884,34 +887,63 @@ document.addEventListener('DOMContentLoaded', () => {
         return canvas;
     }
 
-    // captureAreaを撮影し、スタンプ済みcanvasを返す（フォント読み込み待ち。読み込みが長引いても2秒でタイムアウトして進む）
-    function generateStampedCaptureCanvas() {
-        const target = document.getElementById('captureArea');
+    // captureAreaをA4の幅(px)で複製した、画面には表示されない複製要素を作る。
+    // 複製をbodyへ直接追加することで、.containerのmax-width制約を受けずにA4幅へ広げられる。
+    function buildA4Clone() {
+        const source = document.getElementById('captureArea');
+        const clone = source.cloneNode(true);
+        clone.removeAttribute('id');
+        clone.style.width = `${A4_WIDTH_PX}px`;
+        clone.style.maxWidth = 'none';
+        clone.style.boxSizing = 'border-box';
+        clone.style.position = 'fixed';
+        clone.style.top = '0';
+        clone.style.left = '-99999px';
+        clone.style.margin = '0';
+        document.body.appendChild(clone);
+        return clone;
+    }
+
+    // captureAreaをA4幅で撮影し、スタンプ済みcanvasを返す（フォント読み込み待ち。読み込みが長引いても2秒でタイムアウトして進む）
+    // 返されるcanvasは横幅がA4(210mm)固定、縦はA4何ページ分に相当する内容の長さになる。
+    function generateA4ReportCanvas() {
         const fontsReadyPromise = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
         const timeoutPromise = new Promise(resolve => setTimeout(resolve, 2000));
         const fontsReady = Promise.race([fontsReadyPromise, timeoutPromise]);
 
-        console.log('[施肥設計書] 画像化を開始します…');
+        console.log(`[施肥設計書] A4レイアウト(幅${A4_WIDTH_PX}px)で画像化を開始します…`);
+        const clone = buildA4Clone();
+
         return fontsReady
             .then(() => {
                 console.log('[施肥設計書] フォント待ち完了。html2canvasで撮影します…');
-                return html2canvas(target, { backgroundColor: '#FDFEFC', scale: CAPTURE_RENDER_SCALE });
+                return html2canvas(clone, {
+                    backgroundColor: '#FDFEFC',
+                    width: A4_WIDTH_PX,
+                    windowWidth: A4_WIDTH_PX,
+                    scale: 1
+                });
             })
             .then(canvas => {
-                console.log(`[施肥設計書] 撮影完了 (${canvas.width}x${canvas.height})。作成日・ライセンスを印字します…`);
+                document.body.removeChild(clone);
+                console.log(`[施肥設計書] 撮影完了 (${canvas.width}x${canvas.height})。ライセンスを印字します…`);
                 const stamped = stampCaptureCanvas(canvas);
                 console.log('[施肥設計書] 印字完了。');
                 return stamped;
+            })
+            .catch(err => {
+                if (clone.parentNode) document.body.removeChild(clone);
+                throw err;
             });
     }
 
-    // ---------- PNG出力 ----------
+    // ---------- PNG出力（A4幅の1枚画像。内容が長い場合は縦に長い画像になる） ----------
     document.getElementById('exportPngBtn').addEventListener('click', () => {
         if (typeof html2canvas === 'undefined') {
             alert('PNG出力機能の読み込みに失敗しました。通信環境をご確認のうえ再度お試しください。');
             return;
         }
-        generateStampedCaptureCanvas()
+        generateA4ReportCanvas()
             .then(canvas => {
                 const link = document.createElement('a');
                 const cropName = document.getElementById('reportCropName').textContent || 'result';
@@ -925,7 +957,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     });
 
-    // ---------- PDF出力 ----------
+    // ---------- PDF出力（A4サイズで、内容が1ページに収まらない場合は複数ページに分割） ----------
     document.getElementById('exportPdfBtn').addEventListener('click', () => {
         if (typeof html2canvas === 'undefined') {
             alert('PDF出力機能の読み込みに失敗しました。通信環境をご確認のうえ再度お試しください。');
@@ -935,15 +967,35 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('PDF出力機能の読み込みに失敗しました。通信環境をご確認のうえ再度お試しください。');
             return;
         }
-        generateStampedCaptureCanvas()
+        generateA4ReportCanvas()
             .then(canvas => {
                 const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF({
-                    orientation: canvas.width >= canvas.height ? 'landscape' : 'portrait',
-                    unit: 'px',
-                    format: [canvas.width, canvas.height]
-                });
-                pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, canvas.width, canvas.height);
+                const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+                const pxPerMm = canvas.width / A4_WIDTH_MM;
+                const pageHeightPx = Math.floor(A4_HEIGHT_MM * pxPerMm);
+
+                let renderedPx = 0;
+                let pageIndex = 0;
+                while (renderedPx < canvas.height) {
+                    const sliceHeightPx = Math.min(pageHeightPx, canvas.height - renderedPx);
+
+                    const pageCanvas = document.createElement('canvas');
+                    pageCanvas.width = canvas.width;
+                    pageCanvas.height = sliceHeightPx;
+                    const pctx = pageCanvas.getContext('2d');
+                    pctx.fillStyle = '#FDFEFC';
+                    pctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+                    pctx.drawImage(canvas, 0, renderedPx, canvas.width, sliceHeightPx, 0, 0, canvas.width, sliceHeightPx);
+
+                    const sliceHeightMm = sliceHeightPx / pxPerMm;
+                    if (pageIndex > 0) pdf.addPage();
+                    pdf.addImage(pageCanvas.toDataURL('image/png'), 'PNG', 0, 0, A4_WIDTH_MM, sliceHeightMm);
+
+                    renderedPx += sliceHeightPx;
+                    pageIndex++;
+                }
+
                 const cropName = document.getElementById('reportCropName').textContent || 'result';
                 pdf.save(`施肥設計書_${cropName}.pdf`);
             })
