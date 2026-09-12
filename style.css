@@ -476,6 +476,38 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus {
     border-radius: 10px;
 }
 
+/* ---------- Fertilizer CSV loader ---------- */
+.fert-csv-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+.fert-csv-status {
+    font-size: 0.936rem;
+    color: var(--muted, #6B7A6E);
+}
+.fert-csv-status.is-loaded {
+    color: var(--green-deep);
+    font-weight: 700;
+}
+.fert-csv-select-wrap { margin-top: 6px; }
+.fert-csv-select {
+    width: 100%;
+    font-size: 0.884rem;
+    padding: 6px 8px;
+    background: var(--green-tint);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    color: var(--ink);
+}
+.fert-csv-select:disabled {
+    background: #F0F0EC;
+    color: #9AA39B;
+    cursor: not-allowed;
+}
+
 /* ---------- Fertilizer rows ---------- */
 .fert-rows {
     display: flex;
@@ -591,6 +623,56 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus {
     border-radius: 12px;
     padding: 14px 16px;
     margin: 0;
+}
+
+/* ---------- 特筆事項（入力欄・レポート表示） ---------- */
+.notes-group {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.notes-group label {
+    font-weight: 700;
+    color: var(--ink);
+    font-size: 1.014rem;
+}
+.notes-group textarea {
+    width: 100%;
+    font-family: inherit;
+    font-size: 1rem;
+    line-height: 1.6;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #FCFDFB;
+    color: var(--ink);
+    resize: vertical;
+    box-sizing: border-box;
+}
+.notes-group textarea:focus {
+    outline: none;
+    border-color: var(--green-deep);
+}
+.notes-counter {
+    align-self: flex-end;
+    font-size: 0.858rem;
+    color: var(--ink-soft);
+}
+.notes-counter.is-near-limit { color: var(--sun-deep, #B5791A); font-weight: 700; }
+
+.report-notes-block { margin-top: 4px; }
+.report-notes-text {
+    font-size: 1.09rem;
+    line-height: 1.8;
+    color: var(--ink-soft);
+    background: #FCFDFB;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
 }
 
 /* ---------- Modal ---------- */
@@ -908,4 +990,5 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus {
 .a4-export .fert-table { font-size: 1.664rem; }
 .a4-export .fert-table th, .a4-export .fert-table td { padding: 15px 12px; }
 .a4-export .report-compost-text { font-size: 1.716rem; line-height: 1.8; padding: 20px 22px; }
+.a4-export .report-notes-text { font-size: 1.716rem; line-height: 1.85; padding: 20px 22px; }
 .a4-export .disclaimer { font-size: 1.404rem; }
