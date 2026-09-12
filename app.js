@@ -315,6 +315,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (itemIndex === '' || itemIndex === null || itemIndex === undefined) return;
         const item = fertilizerCsvList[parseInt(itemIndex, 10)];
         if (!item) return;
+
+        // 選択し直した場合に前の肥料の値が混在しないよう、先に各項目を初期化する
+        document.getElementById(`fert_name_${rowIndex}`).value = '';
+        document.getElementById(`fert_n_${rowIndex}`).value = '';
+        document.getElementById(`fert_p_${rowIndex}`).value = '';
+        document.getElementById(`fert_k_${rowIndex}`).value = '';
+        document.getElementById(`fert_cao_${rowIndex}`).value = '';
+        document.getElementById(`fert_mgo_${rowIndex}`).value = '';
+        document.getElementById(`fert_bagweight_${rowIndex}`).value = '';
+        document.getElementById(`fert_amount_${rowIndex}`).value = '';
+
         document.getElementById(`fert_name_${rowIndex}`).value = item.name;
         if (item.n !== null) document.getElementById(`fert_n_${rowIndex}`).value = item.n;
         if (item.p !== null) document.getElementById(`fert_p_${rowIndex}`).value = item.p;
@@ -447,15 +458,53 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('closeCropListModal').addEventListener('click', () => cropListModal.style.display = 'none');
     window.addEventListener('click', (e) => { if (e.target === cropListModal) cropListModal.style.display = 'none'; });
 
-    // ---------- フロー図（1→2→3）の状態表示 ----------
+    // ---------- ステップタブ（1→2→3）の状態表示・切り替え ----------
     function setFlowStep(activeStep) {
         document.querySelectorAll('.flow-step').forEach(el => {
             const step = parseInt(el.dataset.step, 10);
             el.classList.remove('is-active', 'is-done');
+            el.setAttribute('aria-selected', step === activeStep ? 'true' : 'false');
             if (step < activeStep) el.classList.add('is-done');
             else if (step === activeStep) el.classList.add('is-active');
         });
     }
+
+    // 指定ステップのセクションだけを表示するタブ切り替え（他は非表示）
+    function showStep(step) {
+        [1, 2, 3].forEach(n => {
+            document.getElementById('section' + n).style.display = (n === step) ? 'block' : 'none';
+        });
+        setFlowStep(step);
+        document.getElementById('section' + step).scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // まだ到達していないステップのタブを解放する（施肥計算・投入量計算完了時に呼び出す）
+    function unlockStepTab(step) {
+        const tab = document.querySelector('.flow-step[data-step="' + step + '"]');
+        if (tab) {
+            tab.disabled = false;
+            tab.classList.remove('is-locked');
+            tab.setAttribute('aria-disabled', 'false');
+        }
+    }
+
+    // ステップのタブを再びロックする（パラメータ復元など、計算結果が古くなった場合に呼び出す）
+    function lockStepTab(step) {
+        const tab = document.querySelector('.flow-step[data-step="' + step + '"]');
+        if (tab) {
+            tab.disabled = true;
+            tab.classList.add('is-locked');
+            tab.setAttribute('aria-disabled', 'true');
+        }
+    }
+
+    document.querySelectorAll('.flow-step').forEach(tab => {
+        tab.addEventListener('click', () => {
+            const step = parseInt(tab.dataset.step, 10);
+            if (tab.disabled) return;
+            showStep(step);
+        });
+    });
 
     // ---------- 面積の取得・換算 ----------
     function getAreaM2() {
@@ -616,7 +665,13 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const data = JSON.parse(evt.target.result);
                 applyParameterData(data);
-                alert(`「${file.name}」からパラメータを復元しました。`);
+                // 復元した内容はまだ計算に反映されていないため、②・③のタブを再度ロックし①からやり直してもらう
+                lastCalc = null;
+                lastFertCalc = null;
+                lockStepTab(2);
+                lockStepTab(3);
+                showStep(1);
+                alert(`「${file.name}」からパラメータを復元しました。内容を確認のうえ、①から「🌾 施肥計算をする」を押して再計算してください。`);
             } catch (err) {
                 alert('ファイルの読み込みに失敗しました。正しい形式の.jsonファイルか確認してください。');
             } finally {
@@ -967,11 +1022,9 @@ document.addEventListener('DOMContentLoaded', () => {
         lastCalc = { crop, soil, soilSnapshot, base };
         lastFertCalc = null;
 
-        document.getElementById('section2').style.display = 'block';
-        document.getElementById('section3').style.display = 'none';
         document.getElementById('fertResultArea').style.display = 'none';
-        setFlowStep(2);
-        document.getElementById('section2').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        unlockStepTab(2);
+        showStep(2);
     });
 
     // ---------- (2) 投入量を計算する ----------
@@ -1083,9 +1136,8 @@ document.addEventListener('DOMContentLoaded', () => {
             reportNotesBlock.style.display = 'none';
         }
 
-        document.getElementById('section3').style.display = 'block';
-        setFlowStep(3);
-        document.getElementById('section3').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        unlockStepTab(3);
+        showStep(3);
     });
 
     // ---------- 結果の画像化（PNG・PDF共通、A4レイアウトに合わせて出力） ----------
