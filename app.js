@@ -113,6 +113,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="form-group fert-name-group">
                         <label for="fert_name_${i}">肥料名</label>
                         <input type="text" id="fert_name_${i}" placeholder="例: 化成肥料 8-8-8">
+                        <div class="fert-csv-select-wrap">
+                            <select id="fert_csv_select_${i}" class="fert-csv-select" disabled>
+                                <option value="">CSVから選択（未読み込み）</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label for="fert_n_${i}">N (%)</label>
@@ -147,6 +152,215 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
     }
     fertRowsContainer.innerHTML = fertRowsHtml;
+
+    // ---------- 肥料一覧CSVの読み込み（肥料名からN/P2O5/K2O/CaO/MgO/1袋の重量を自動入力） ----------
+    // 見出し行の列名ゆらぎを吸収するためのエイリアス一覧
+    const FERT_CSV_HEADER_ALIASES = {
+        category: ['区分', '分類', 'category', 'カテゴリ'],
+        name: ['名称', '肥料名', '品名', 'name'],
+        n: ['n', '窒素'],
+        p: ['p', 'p2o5', 'りん酸', '燐酸'],
+        k: ['k', 'k2o', '加里', 'カリ'],
+        cao: ['石灰', 'cao'],
+        mgo: ['苦土', 'mgo'],
+        bagWeight: ['1袋の重量(kg)', '1袋の重量', '袋重量', '重量(kg)', '重量', 'bagweight', 'bag_weight']
+    };
+
+    let fertilizerCsvList = []; // [{ category, name, n, p, k, cao, mgo, bagWeight }, ...]
+
+    // 見出し文字列の正規化（全角/半角スペース・括弧・記号を除去し小文字化して比較しやすくする）
+    function normalizeHeaderText(text) {
+        return String(text || '')
+            .toLowerCase()
+            .replace(/[\s　()（）%％]/g, '');
+    }
+
+    function detectFertCsvColumns(headerCells) {
+        const normalizedHeaders = headerCells.map(normalizeHeaderText);
+        const columnIndex = {};
+        Object.keys(FERT_CSV_HEADER_ALIASES).forEach((field) => {
+            const aliases = FERT_CSV_HEADER_ALIASES[field].map(normalizeHeaderText);
+            const idx = normalizedHeaders.findIndex((h) => aliases.includes(h));
+            if (idx !== -1) columnIndex[field] = idx;
+        });
+        return columnIndex;
+    }
+
+    // "6〜8"や"マンガン0.5%"のような非数値混じりの文字列からも、読み取れる範囲で数値を抽出する
+    function extractNumberFromCell(text) {
+        if (text === undefined || text === null) return null;
+        const trimmed = String(text).trim();
+        if (trimmed === '') return null;
+        const match = trimmed.match(/-?\d+(\.\d+)?/);
+        if (!match) return null;
+        const value = parseFloat(match[0]);
+        return isNaN(value) ? null : value;
+    }
+
+    // 簡易CSVパーサー（ダブルクォート囲み・エスケープに対応）
+    function parseCsvText(text) {
+        const rows = [];
+        let row = [];
+        let cell = '';
+        let inQuotes = false;
+        const normalized = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+        for (let i = 0; i < normalized.length; i++) {
+            const ch = normalized[i];
+            if (inQuotes) {
+                if (ch === '"') {
+                    if (normalized[i + 1] === '"') { cell += '"'; i++; }
+                    else { inQuotes = false; }
+                } else {
+                    cell += ch;
+                }
+            } else if (ch === '"') {
+                inQuotes = true;
+            } else if (ch === ',') {
+                row.push(cell); cell = '';
+            } else if (ch === '\n') {
+                row.push(cell); cell = '';
+                rows.push(row); row = [];
+            } else {
+                cell += ch;
+            }
+        }
+        if (cell !== '' || row.length > 0) { row.push(cell); rows.push(row); }
+        return rows.filter((r) => r.some((c) => String(c).trim() !== ''));
+    }
+
+    function parseFertilizerCsv(text) {
+        const rows = parseCsvText(text);
+        if (rows.length < 2) throw new Error('empty');
+        const columnIndex = detectFertCsvColumns(rows[0]);
+        if (columnIndex.name === undefined) throw new Error('肥料名の列が見つかりません');
+
+        let lastCategory = '';
+        const items = [];
+        for (let r = 1; r < rows.length; r++) {
+            const cells = rows[r];
+            const name = (cells[columnIndex.name] || '').trim();
+            if (!name) continue;
+            const category = columnIndex.category !== undefined && cells[columnIndex.category] && cells[columnIndex.category].trim()
+                ? cells[columnIndex.category].trim()
+                : lastCategory;
+            lastCategory = category;
+            items.push({
+                category: category || 'その他',
+                name: name,
+                n: columnIndex.n !== undefined ? extractNumberFromCell(cells[columnIndex.n]) : null,
+                p: columnIndex.p !== undefined ? extractNumberFromCell(cells[columnIndex.p]) : null,
+                k: columnIndex.k !== undefined ? extractNumberFromCell(cells[columnIndex.k]) : null,
+                cao: columnIndex.cao !== undefined ? extractNumberFromCell(cells[columnIndex.cao]) : null,
+                mgo: columnIndex.mgo !== undefined ? extractNumberFromCell(cells[columnIndex.mgo]) : null,
+                bagWeight: columnIndex.bagWeight !== undefined ? extractNumberFromCell(cells[columnIndex.bagWeight]) : null
+            });
+        }
+        return items;
+    }
+
+    // 文字コード判定：UTF-8として読めるかを試し、文字化けが多い場合はShift_JIS(CP932)として読み直す
+    function decodeFertCsvBuffer(buffer) {
+        const bytes = new Uint8Array(buffer);
+        const tryDecode = (encoding) => {
+            try {
+                return new TextDecoder(encoding, { fatal: false }).decode(bytes);
+            } catch (e) {
+                return null;
+            }
+        };
+        const utf8Text = tryDecode('utf-8');
+        const replacementCount = utf8Text ? (utf8Text.match(/\uFFFD/g) || []).length : Infinity;
+        if (utf8Text && replacementCount === 0) return utf8Text;
+
+        const sjisText = tryDecode('shift_jis');
+        if (sjisText) return sjisText;
+
+        return utf8Text || '';
+    }
+
+    function populateFertCsvSelects() {
+        const grouped = [];
+        const groupIndexByCategory = {};
+        fertilizerCsvList.forEach((item, idx) => {
+            if (!(item.category in groupIndexByCategory)) {
+                groupIndexByCategory[item.category] = grouped.length;
+                grouped.push({ category: item.category, items: [] });
+            }
+            grouped[groupIndexByCategory[item.category]].items.push(idx);
+        });
+
+        let optionsHtml = '<option value="">CSVから選択してください</option>';
+        grouped.forEach((group) => {
+            optionsHtml += `<optgroup label="${escapeHtml(group.category)}">`;
+            group.items.forEach((idx) => {
+                optionsHtml += `<option value="${idx}">${escapeHtml(fertilizerCsvList[idx].name)}</option>`;
+            });
+            optionsHtml += '</optgroup>';
+        });
+
+        for (let i = 1; i <= FERT_COUNT; i++) {
+            const select = document.getElementById(`fert_csv_select_${i}`);
+            select.innerHTML = optionsHtml;
+            select.disabled = false;
+        }
+    }
+
+    function escapeHtml(str) {
+        return String(str).replace(/[&<>"']/g, (ch) => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        })[ch]);
+    }
+
+    function applyFertCsvSelection(rowIndex, itemIndex) {
+        if (itemIndex === '' || itemIndex === null || itemIndex === undefined) return;
+        const item = fertilizerCsvList[parseInt(itemIndex, 10)];
+        if (!item) return;
+        document.getElementById(`fert_name_${rowIndex}`).value = item.name;
+        if (item.n !== null) document.getElementById(`fert_n_${rowIndex}`).value = item.n;
+        if (item.p !== null) document.getElementById(`fert_p_${rowIndex}`).value = item.p;
+        if (item.k !== null) document.getElementById(`fert_k_${rowIndex}`).value = item.k;
+        if (item.cao !== null) document.getElementById(`fert_cao_${rowIndex}`).value = item.cao;
+        if (item.mgo !== null) document.getElementById(`fert_mgo_${rowIndex}`).value = item.mgo;
+        if (item.bagWeight !== null) document.getElementById(`fert_bagweight_${rowIndex}`).value = item.bagWeight;
+    }
+
+    for (let i = 1; i <= FERT_COUNT; i++) {
+        document.getElementById(`fert_csv_select_${i}`).addEventListener('change', (e) => {
+            applyFertCsvSelection(i, e.target.value);
+        });
+    }
+
+    const fertCsvFileInput = document.getElementById('fertCsvFileInput');
+    const fertCsvStatus = document.getElementById('fertCsvStatus');
+    document.getElementById('fertCsvLoadBtn').addEventListener('click', () => fertCsvFileInput.click());
+
+    fertCsvFileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+            try {
+                const text = decodeFertCsvBuffer(evt.target.result);
+                const items = parseFertilizerCsv(text);
+                if (items.length === 0) throw new Error('肥料データが見つかりません');
+                fertilizerCsvList = items;
+                populateFertCsvSelects();
+                fertCsvStatus.textContent = `✅ 「${file.name}」を読み込みました（${items.length}件の肥料）。各行の「CSVから選択」で肥料名を選ぶと自動入力されます。`;
+                fertCsvStatus.classList.add('is-loaded');
+            } catch (err) {
+                alert('CSVファイルの読み込みに失敗しました。見出し行に肥料名の列（例：名称、肥料名）があるか確認してください。');
+                fertCsvStatus.textContent = '⚠️ 読み込みに失敗しました。ファイル形式をご確認のうえ、もう一度お試しください。';
+                fertCsvStatus.classList.remove('is-loaded');
+            } finally {
+                fertCsvFileInput.value = '';
+            }
+        };
+        reader.onerror = () => {
+            alert('ファイルの読み込み中にエラーが発生しました。');
+            fertCsvFileInput.value = '';
+        };
+        reader.readAsArrayBuffer(file);
+    });
 
     // モーダル制御
     const modal = document.getElementById('helpModal');
@@ -262,6 +476,18 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('areaUnit').addEventListener('change', updateAreaConvertedDisplay);
     updateAreaConvertedDisplay();
 
+    // ---------- 特筆事項（任意・最大400文字）の文字数カウンター ----------
+    const SPECIAL_NOTES_MAX_LENGTH = 400;
+    const specialNotesInput = document.getElementById('specialNotes');
+    const specialNotesCounter = document.getElementById('specialNotesCounter');
+    function updateSpecialNotesCounter() {
+        const len = specialNotesInput.value.length;
+        specialNotesCounter.textContent = `${len} / ${SPECIAL_NOTES_MAX_LENGTH}`;
+        specialNotesCounter.classList.toggle('is-near-limit', len >= SPECIAL_NOTES_MAX_LENGTH * 0.9);
+    }
+    specialNotesInput.addEventListener('input', updateSpecialNotesCounter);
+    updateSpecialNotesCounter();
+
     // ---------- ファイル名サニタイズ・日付 ----------
     function sanitizeFilename(name) {
         return name.replace(/[\\/:*?"<>|]/g, '').trim();
@@ -310,7 +536,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 unit: document.getElementById('areaUnit').value,
                 fieldName: document.getElementById('fieldName').value
             },
-            fertilizers: fertilizers
+            fertilizers: fertilizers,
+            specialNotes: document.getElementById('specialNotes').value
         };
     }
 
@@ -349,6 +576,9 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById(`fert_bagweight_${i}`).value = f.bagWeight || '';
             document.getElementById(`fert_amount_${i}`).value = f.amount || '';
         }
+
+        specialNotesInput.value = (data.specialNotes || '').slice(0, SPECIAL_NOTES_MAX_LENGTH);
+        updateSpecialNotesCounter();
     }
 
     function saveParametersToFile() {
@@ -841,6 +1071,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 堆肥のめやす
         document.getElementById('finalReportCompostText').textContent = buildCompostText(crop, scale);
+
+        // 特筆事項（任意入力。未入力の場合はブロックごと非表示にする）
+        const specialNotesValue = specialNotesInput.value.trim();
+        const reportNotesBlock = document.getElementById('reportNotesBlock');
+        if (specialNotesValue) {
+            document.getElementById('finalReportNotesText').textContent = specialNotesValue;
+            reportNotesBlock.style.display = 'block';
+        } else {
+            document.getElementById('finalReportNotesText').textContent = '';
+            reportNotesBlock.style.display = 'none';
+        }
 
         document.getElementById('section3').style.display = 'block';
         setFlowStep(3);
