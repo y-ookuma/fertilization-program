@@ -39,38 +39,41 @@
 
         <!-- 操作ボタンエリア -->
         <div class="action-bar">
-            <button id="saveBtn" class="btn-primary">💾 パラメータを保存</button>
-            <button id="restoreBtn" class="btn-secondary">🔁 パラメータを復元</button>
-            <a id="sampleCsvBtn" class="btn-secondary" href="https://github.com/y-ookuma/fertilization-program/tree/main/%E8%82%A5%E6%96%99CSV" target="_blank" rel="noopener noreferrer">📁 サンプル肥料一覧CSV</a>
+            <div class="action-bar-group">
+                <button id="saveBtn" class="btn-primary">💾 パラメータを保存</button>
+                <button id="restoreBtn" class="btn-secondary">🔁 パラメータを復元</button>
+            </div>
+            <a id="sampleCsvBtn" class="btn-white action-bar-right" href="https://github.com/y-ookuma/fertilization-program/tree/main/%E8%82%A5%E6%96%99CSV" target="_blank" rel="noopener noreferrer">📁 サンプル肥料一覧CSV</a>
             <input type="file" id="restoreFileInput" accept="application/json,.json" style="display:none;">
         </div>
 
-        <!-- 画面展開を示すフロー図 -->
-        <nav class="flow-steps" id="flowSteps" aria-hidden="true">
-            <div class="flow-step is-active" data-step="1">
+        <!-- ステップタブ（①→②→③の順で入力を進めます） -->
+        <nav class="flow-steps" id="flowSteps" role="tablist" aria-label="施肥設計の入力ステップ">
+            <button type="button" class="flow-step is-active" data-step="1" role="tab" aria-selected="true" aria-controls="section1" id="tabStep1">
                 <span class="flow-num">1</span>
                 <span class="flow-label">土壌分析</span>
-            </div>
+            </button>
             <div class="flow-arrow">
                 <svg viewBox="0 0 24 24" width="20" height="20"><path d="M4 12H20M20 12L14 6M20 12L14 18" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </div>
-            <div class="flow-step" data-step="2">
+            <button type="button" class="flow-step is-locked" data-step="2" role="tab" aria-selected="false" aria-disabled="true" aria-controls="section2" id="tabStep2" disabled>
                 <span class="flow-num">2</span>
                 <span class="flow-label">分析結果と肥料投入量</span>
-            </div>
+            </button>
             <div class="flow-arrow">
                 <svg viewBox="0 0 24 24" width="20" height="20"><path d="M4 12H20M20 12L14 6M20 12L14 18" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </div>
-            <div class="flow-step" data-step="3">
+            <button type="button" class="flow-step is-locked" data-step="3" role="tab" aria-selected="false" aria-disabled="true" aria-controls="section3" id="tabStep3" disabled>
                 <span class="flow-num">3</span>
                 <span class="flow-label">施肥設計書</span>
-            </div>
+            </button>
         </nav>
+        <p class="flow-steps-hint">① → ② → ③ の順に入力を進めてください。②・③のタブは、それぞれ手前のステップで計算を実行するまでは選べません。</p>
 
         <!-- ============================================================ -->
         <!-- (1) 土壌分析                                                   -->
         <!-- ============================================================ -->
-        <section class="card" id="section1">
+        <section class="card" id="section1" role="tabpanel" aria-labelledby="tabStep1">
             <h2><span class="step-dot">1</span>土壌分析</h2>
 
             <h3 class="sub-heading">① 栽培作物の選択</h3>
@@ -134,7 +137,7 @@
         <!-- ============================================================ -->
         <!-- (2) 施肥結果                                                   -->
         <!-- ============================================================ -->
-        <section class="card" id="section2" style="display: none;">
+        <section class="card" id="section2" style="display: none;" role="tabpanel" aria-labelledby="tabStep2">
             <h2><span class="step-dot">2</span>施肥結果</h2>
 
             <div class="result-header">
@@ -228,7 +231,7 @@
         <!-- ============================================================ -->
         <!-- (3) 施肥量（施肥設計書）                                        -->
         <!-- ============================================================ -->
-        <section class="card result-card" id="section3" style="display: none;">
+        <section class="card result-card" id="section3" style="display: none;" role="tabpanel" aria-labelledby="tabStep3">
             <h2><span class="step-dot">3</span>施肥量</h2>
 
             <div class="result-header">
@@ -281,9 +284,11 @@
 
         <!-- 下部の保存・復元ボタン -->
         <div class="action-bar bottom-action-bar">
-            <button id="saveBtnBottom" class="btn-primary">💾 パラメータを保存</button>
-            <button id="restoreBtnBottom" class="btn-secondary">🔁 パラメータを復元</button>
-            <a id="sampleCsvBtnBottom" class="btn-secondary" href="https://github.com/y-ookuma/fertilization-program/tree/main/%E8%82%A5%E6%96%99CSV" target="_blank" rel="noopener noreferrer">📁 サンプル肥料一覧CSV</a>
+            <div class="action-bar-group">
+                <button id="saveBtnBottom" class="btn-primary">💾 パラメータを保存</button>
+                <button id="restoreBtnBottom" class="btn-secondary">🔁 パラメータを復元</button>
+            </div>
+            <a id="sampleCsvBtnBottom" class="btn-white action-bar-right" href="https://github.com/y-ookuma/fertilization-program/tree/main/%E8%82%A5%E6%96%99CSV" target="_blank" rel="noopener noreferrer">📁 サンプル肥料一覧CSV</a>
         </div>
     </div>
 
@@ -298,19 +303,20 @@
             <span id="closeModal" class="close">&times;</span>
             <h2>施肥設計の手順書</h2>
             <ol>
+                <li><strong>①②③ タブについて:</strong> 画面上部の「① 土壌分析」「② 分析結果と肥料投入量」「③ 施肥設計書」のタブで、表示する内容を切り替えます。②・③のタブは、それぞれ手前のステップで計算（「施肥計算をする」「施肥設計完了」）を行うまでクリックできません。計算後はいつでもタブをクリックして前のステップに戻れます。</li>
                 <li><strong>(1) 土壌分析 ― 栽培作物の選択:</strong> ライブラリから目的の作物を選びます。目標収量に応じた基本養分吸収量が自動で読み込まれます。</li>
                 <li><strong>(1) 土壌分析 ― 土壌分析値の入力:</strong> 土壌分析結果の各項目（pH、EC、有効態成分など）を入力し、「施肥計算をする」を押します。(11)推定硝酸態窒素が分かる場合は入力してください。未入力の場合はEC(電気伝導度)から自動推定します。</li>
                 <li><strong>(2) 施肥結果 ― 目標値の確認:</strong> N・P・K・石灰(CaO)・苦土(MgO)それぞれの目標値・残存量・不足量が表示されます。窒素(N)の残存量は、(11)推定硝酸態窒素の入力があればその値を優先し、未入力の場合のみ電気伝導度(EC)から推定します。堆肥や石灰・苦土資材のめやすも合わせて表示されます。</li>
                 <li><strong>(2) 施肥結果 ― 圃場の入力:</strong> 圃場名（任意）と面積（㎡・a・haのいずれか）を入力すると、目標値・不足量が実際の面積に換算されます（面積が未入力の場合は10a=1,000㎡として計算）。</li>
                 <li><strong>(2) 施肥結果 ― 使用する肥料の入力:</strong> 実際に使う肥料を最大8種類まで登録できます。肥料名・N/P2O5/K2O/CaO/MgO(%)・1袋の重量(kg)・今回投入量(kg)を入力し、「投入量を計算する」を押すと、肥料ごとの袋数と、8種類を合算した目標・投入・過不足が表示されます。</li>
-                <li><strong>(2) 施肥結果 ― 肥料一覧CSVの読み込み:</strong> 「📂 肥料一覧CSVを読み込む」ボタンから、お手元の肥料一覧CSV（例：JAさいたま肥料一覧.csv）を読み込むと、各肥料行に「CSVから選択」のプルダウンが現れます。肥料名を選ぶだけで、N・P2O5・K2O・石灰(CaO)・苦土(MgO)・1袋の重量(kg)が自動入力されます（CSVに列がない項目は空欄のままなので、必要に応じて手入力してください）。選んだ後も数値は自由に修正できます。手元にCSVがない場合は「📁 サンプル肥料一覧CSV」ボタンからサンプルをダウンロードし、内容を編集してから読み込めます。</li>
-                <li><strong>(2) 施肥結果 ― 施肥設計完了:</strong> 「施肥設計完了」を押すと、(3)施肥量に圃場名・作物・面積・土壌分析結果・肥料の詳細・最終的な目標／不足／投入量・特筆事項がまとめて表示されます。栽培作物名の右側には作成日が表示され、PNG・PDF保存時にもそのまま出力されます。</li>
+                <li><strong>(2) 施肥結果 ― 肥料一覧CSVの読み込み:</strong> 「📂 肥料一覧CSVを読み込む」ボタンから、お手元の肥料一覧CSV（例：JAさいたま肥料一覧.csv）を読み込むと、各肥料行に「CSVから選択」のプルダウンが現れます。肥料名を選ぶと、まずその行の肥料名・N・P2O5・K2O・石灰(CaO)・苦土(MgO)・1袋の重量(kg)・今回投入量(kg)を一度空欄にリセットしてから、選んだ肥料のN・P2O5・K2O・石灰(CaO)・苦土(MgO)・1袋の重量(kg)が自動入力されます（CSVに列がない項目・今回投入量(kg)は空欄のままなので、必要に応じて手入力してください）。選んだ後も数値は自由に修正できます。手元にCSVがない場合は「📁 サンプル肥料一覧CSV」ボタンからサンプルをダウンロードし、内容を編集してから読み込めます。</li>
+                <li><strong>(2) 施肥結果 ― 施肥設計完了:</strong> 「施肥設計完了」を押すと、③のタブが解放されて自動的に切り替わり、(3)施肥量に圃場名・作物・面積・土壌分析結果・肥料の詳細・最終的な目標／不足／投入量・特筆事項がまとめて表示されます。栽培作物名の右側には作成日が表示され、PNG・PDF保存時にもそのまま出力されます。</li>
                 <li><strong>(2) 施肥結果 ― 特筆事項の入力:</strong> 「施肥設計完了」ボタンの直前に、任意で最大400文字まで入力できる「特筆事項」欄があります。前作の残肥状況や排水の悪さなど、数値化しにくい気づいた点を自由に記入できます。入力内容は(3)施肥量の欄の下部に表示され、PNG・PDF保存やパラメータの保存・復元にも反映されます。未入力の場合、(3)施肥量にはこの欄自体が表示されません。</li>
                 <li><strong>(3) 施肥量 ― 土壌分析結果の過不足表示:</strong> 各項目の数値の右側に、目安値と比べて不足なら「↓◯◯%」、過剰なら「↑◯◯%」、適正なら「✓ 適正」のバッジが色分けして表示されます。N・P2O5・K2O・CaO(石灰)・MgO(苦土)は不足・過剰量(kg)も併記されます。</li>
                 <li><strong>(3) 施肥量 ― PNG・PDF保存:</strong> 「結果をPNG保存」「結果をPDF保存」ボタンで、施肥設計書の内容をA4サイズのレイアウトに合わせて保存できます。PNGはA4の幅に揃えた1枚の画像（内容が長い場合は縦に長くなります）、PDFはA4サイズのページで、1ページに収まらない場合は自動的に複数ページに分割されます。どちらも右下にライセンス表記が入ります。</li>
                 <li><strong>作物別基肥一覧:</strong> ヘッダーの「🌱 作物別基肥一覧」ボタンで、ライブラリに登録された30品目すべての基肥目標量（N・P2O5・K2O、10aあたり）を一覧表示できます。</li>
-                <li><strong>パラメータの保存・復元:</strong> ページ上部・下部どちらの「パラメータを保存」からもファイル名を指定して.jsonファイルをダウンロードできます。作物・土壌分析値・面積・8種類の肥料情報がすべて含まれます。「パラメータを復元」でファイルを選択して読み込めます。</li>
-                <li><strong>サンプル肥料一覧CSV:</strong> ページ上部・下部の「📁 サンプル肥料一覧CSV」ボタンから、GitHubの肥料CSVフォルダを新しいタブで開き、任意のサンプルCSVをダウンロードできます。ダウンロードしたCSVはお手元のファイルなので自由に編集でき、④の「肥料一覧CSVを読み込む」ボタンで読み込めます。</li>
+                <li><strong>パラメータの保存・復元:</strong> ページ上部・下部どちらの「パラメータを保存」からもファイル名を指定して.jsonファイルをダウンロードできます。作物・土壌分析値・面積・8種類の肥料情報がすべて含まれます。「パラメータを復元」でファイルを選択して読み込めます（復元すると②・③のタブは再びロックされ①に戻るので、「施肥計算をする」からやり直してください）。</li>
+                <li><strong>サンプル肥料一覧CSV:</strong> 「パラメータを保存」「パラメータを復元」とは分けて、白背景のボタンとして右寄せに配置されています。「📁 サンプル肥料一覧CSV」ボタンから、GitHubの肥料CSVフォルダを新しいタブで開き、任意のサンプルCSVをダウンロードできます。ダウンロードしたCSVはお手元のファイルなので自由に編集でき、④の「肥料一覧CSVを読み込む」ボタンで読み込めます。</li>
             </ol>
             <p class="modal-readme-link">詳しい計算式やQ&amp;Aは <button id="readmeInlineLink" class="link-button">README.md</button> をご覧ください。</p>
         </div>
