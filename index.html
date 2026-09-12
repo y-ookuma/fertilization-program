@@ -41,6 +41,7 @@
         <div class="action-bar">
             <button id="saveBtn" class="btn-primary">💾 パラメータを保存</button>
             <button id="restoreBtn" class="btn-secondary">🔁 パラメータを復元</button>
+            <a id="sampleCsvBtn" class="btn-secondary" href="https://github.com/y-ookuma/fertilization-program/tree/main/%E8%82%A5%E6%96%99CSV" target="_blank" rel="noopener noreferrer">📁 サンプル肥料一覧CSV</a>
             <input type="file" id="restoreFileInput" accept="application/json,.json" style="display:none;">
         </div>
 
@@ -282,6 +283,7 @@
         <div class="action-bar bottom-action-bar">
             <button id="saveBtnBottom" class="btn-primary">💾 パラメータを保存</button>
             <button id="restoreBtnBottom" class="btn-secondary">🔁 パラメータを復元</button>
+            <a id="sampleCsvBtnBottom" class="btn-secondary" href="https://github.com/y-ookuma/fertilization-program/tree/main/%E8%82%A5%E6%96%99CSV" target="_blank" rel="noopener noreferrer">📁 サンプル肥料一覧CSV</a>
         </div>
     </div>
 
@@ -301,13 +303,14 @@
                 <li><strong>(2) 施肥結果 ― 目標値の確認:</strong> N・P・K・石灰(CaO)・苦土(MgO)それぞれの目標値・残存量・不足量が表示されます。窒素(N)の残存量は、(11)推定硝酸態窒素の入力があればその値を優先し、未入力の場合のみ電気伝導度(EC)から推定します。堆肥や石灰・苦土資材のめやすも合わせて表示されます。</li>
                 <li><strong>(2) 施肥結果 ― 圃場の入力:</strong> 圃場名（任意）と面積（㎡・a・haのいずれか）を入力すると、目標値・不足量が実際の面積に換算されます（面積が未入力の場合は10a=1,000㎡として計算）。</li>
                 <li><strong>(2) 施肥結果 ― 使用する肥料の入力:</strong> 実際に使う肥料を最大8種類まで登録できます。肥料名・N/P2O5/K2O/CaO/MgO(%)・1袋の重量(kg)・今回投入量(kg)を入力し、「投入量を計算する」を押すと、肥料ごとの袋数と、8種類を合算した目標・投入・過不足が表示されます。</li>
-                <li><strong>(2) 施肥結果 ― 肥料一覧CSVの読み込み:</strong> 「📂 肥料一覧CSVを読み込む」ボタンから、お手元の肥料一覧CSV（例：JAさいたま肥料一覧.csv）を読み込むと、各肥料行に「CSVから選択」のプルダウンが現れます。肥料名を選ぶだけで、N・P2O5・K2O・石灰(CaO)・苦土(MgO)・1袋の重量(kg)が自動入力されます（CSVに列がない項目は空欄のままなので、必要に応じて手入力してください）。選んだ後も数値は自由に修正できます。</li>
+                <li><strong>(2) 施肥結果 ― 肥料一覧CSVの読み込み:</strong> 「📂 肥料一覧CSVを読み込む」ボタンから、お手元の肥料一覧CSV（例：JAさいたま肥料一覧.csv）を読み込むと、各肥料行に「CSVから選択」のプルダウンが現れます。肥料名を選ぶだけで、N・P2O5・K2O・石灰(CaO)・苦土(MgO)・1袋の重量(kg)が自動入力されます（CSVに列がない項目は空欄のままなので、必要に応じて手入力してください）。選んだ後も数値は自由に修正できます。手元にCSVがない場合は「📁 サンプル肥料一覧CSV」ボタンからサンプルをダウンロードし、内容を編集してから読み込めます。</li>
                 <li><strong>(2) 施肥結果 ― 施肥設計完了:</strong> 「施肥設計完了」を押すと、(3)施肥量に圃場名・作物・面積・土壌分析結果・肥料の詳細・最終的な目標／不足／投入量・特筆事項がまとめて表示されます。栽培作物名の右側には作成日が表示され、PNG・PDF保存時にもそのまま出力されます。</li>
                 <li><strong>(2) 施肥結果 ― 特筆事項の入力:</strong> 「施肥設計完了」ボタンの直前に、任意で最大400文字まで入力できる「特筆事項」欄があります。前作の残肥状況や排水の悪さなど、数値化しにくい気づいた点を自由に記入できます。入力内容は(3)施肥量の欄の下部に表示され、PNG・PDF保存やパラメータの保存・復元にも反映されます。未入力の場合、(3)施肥量にはこの欄自体が表示されません。</li>
                 <li><strong>(3) 施肥量 ― 土壌分析結果の過不足表示:</strong> 各項目の数値の右側に、目安値と比べて不足なら「↓◯◯%」、過剰なら「↑◯◯%」、適正なら「✓ 適正」のバッジが色分けして表示されます。N・P2O5・K2O・CaO(石灰)・MgO(苦土)は不足・過剰量(kg)も併記されます。</li>
                 <li><strong>(3) 施肥量 ― PNG・PDF保存:</strong> 「結果をPNG保存」「結果をPDF保存」ボタンで、施肥設計書の内容をA4サイズのレイアウトに合わせて保存できます。PNGはA4の幅に揃えた1枚の画像（内容が長い場合は縦に長くなります）、PDFはA4サイズのページで、1ページに収まらない場合は自動的に複数ページに分割されます。どちらも右下にライセンス表記が入ります。</li>
                 <li><strong>作物別基肥一覧:</strong> ヘッダーの「🌱 作物別基肥一覧」ボタンで、ライブラリに登録された30品目すべての基肥目標量（N・P2O5・K2O、10aあたり）を一覧表示できます。</li>
                 <li><strong>パラメータの保存・復元:</strong> ページ上部・下部どちらの「パラメータを保存」からもファイル名を指定して.jsonファイルをダウンロードできます。作物・土壌分析値・面積・8種類の肥料情報がすべて含まれます。「パラメータを復元」でファイルを選択して読み込めます。</li>
+                <li><strong>サンプル肥料一覧CSV:</strong> ページ上部・下部の「📁 サンプル肥料一覧CSV」ボタンから、GitHubの肥料CSVフォルダを新しいタブで開き、任意のサンプルCSVをダウンロードできます。ダウンロードしたCSVはお手元のファイルなので自由に編集でき、④の「肥料一覧CSVを読み込む」ボタンで読み込めます。</li>
             </ol>
             <p class="modal-readme-link">詳しい計算式やQ&amp;Aは <button id="readmeInlineLink" class="link-button">README.md</button> をご覧ください。</p>
         </div>
