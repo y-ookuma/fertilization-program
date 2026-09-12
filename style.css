@@ -140,6 +140,12 @@ button:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
     gap: 10px;
     flex-wrap: wrap;
 }
+.action-bar a.btn-secondary {
+    text-align: center;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+}
 .center { text-align: center; margin-top: 28px; }
 .complete-btn-wrap { margin-top: 34px; padding-top: 20px; border-top: 2px dashed var(--line); }
 
