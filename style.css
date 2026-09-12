@@ -101,7 +101,12 @@ h1, h2, h3 {
 }
 
 /* ---------- Buttons ---------- */
-button {
+button,
+a.btn-primary,
+a.btn-secondary,
+a.btn-accent,
+a.btn-complete,
+a.btn-white {
     padding: 11px 18px;
     font-size: 1.235rem;
     font-family: "Noto Sans JP", sans-serif;
@@ -110,13 +115,34 @@ button {
     border-radius: 12px;
     cursor: pointer;
     transition: transform 0.12s ease, opacity 0.12s ease;
+    text-align: center;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
-button:hover { opacity: 0.92; }
-button:active { transform: scale(0.98); }
-button:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
+button:hover,
+a.btn-primary:hover,
+a.btn-secondary:hover,
+a.btn-accent:hover,
+a.btn-complete:hover,
+a.btn-white:hover { opacity: 0.92; }
+button:active,
+a.btn-primary:active,
+a.btn-secondary:active,
+a.btn-accent:active,
+a.btn-complete:active,
+a.btn-white:active { transform: scale(0.98); }
+button:focus-visible,
+a.btn-primary:focus-visible,
+a.btn-secondary:focus-visible,
+a.btn-accent:focus-visible,
+a.btn-complete:focus-visible,
+a.btn-white:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
 
 .btn-primary { background-color: var(--green); color: white; }
 .btn-secondary { background-color: var(--stone-tint); color: var(--ink); border: 1px solid var(--line); }
+.btn-white { background-color: var(--card); color: var(--ink); border: 1px solid var(--line); }
 .btn-accent {
     background: linear-gradient(135deg, var(--sun), var(--sun-deep));
     color: #4A3007;
@@ -139,13 +165,14 @@ button:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
-}
-.action-bar a.btn-secondary {
-    text-align: center;
-    text-decoration: none;
-    display: inline-flex;
     align-items: center;
 }
+.action-bar-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.action-bar-right { margin-left: auto; }
 .center { text-align: center; margin-top: 28px; }
 .complete-btn-wrap { margin-top: 34px; padding-top: 20px; border-top: 2px dashed var(--line); }
 
@@ -201,8 +228,26 @@ button:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
     color: var(--green-deep);
 }
 .flow-step.is-done .flow-num { background: var(--green); color: white; }
+.flow-step:disabled,
+.flow-step.is-locked {
+    cursor: not-allowed;
+    opacity: 0.55;
+    background: var(--card);
+    color: var(--ink-soft);
+    box-shadow: none;
+}
+.flow-step:disabled:hover,
+.flow-step.is-locked:hover { opacity: 0.55; }
+.flow-step:disabled .flow-num,
+.flow-step.is-locked .flow-num { background: var(--stone-tint); color: var(--ink-soft); }
 .flow-arrow { color: var(--line); display: flex; align-items: center; flex-shrink: 0; }
 .flow-arrow svg { display: block; }
+.flow-steps-hint {
+    text-align: center;
+    font-size: 0.936rem;
+    color: var(--ink-soft);
+    margin-top: 6px;
+}
 
 /* ---------- Cards ---------- */
 .card {
