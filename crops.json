@@ -1,8 +1,8 @@
 {
   "version": "1.2",
   "metadata": {
-    "title": "土壌分析に基づく元肥設計用 野菜別基準ライブラリ",
-    "description": "36品目の主要野菜における10aあたりの養分吸収量、標準元肥比率、カテゴリー（果菜/葉菜/根菜/りん茎/いも/豆類/多年生）の基準値。"
+    "title": "土壌分析に基づく元肥設計用 作物別基準ライブラリ",
+    "description": "39品目（野菜36品目・水稲3品種）における10aあたりの養分吸収量（水稲は基肥・追肥合計の施肥量）、標準元肥比率、カテゴリー（果菜/葉菜/根菜/りん茎/いも/豆類/多年生/穀類）の基準値。"
   },
   "crops": [
     { "id": "cucumber_greenhouse", "name": "キュウリ（ハウス栽培）", "emoji": "🥒", "category": "fruit", "nutrient_absorption_kg_10a": { "n": 30.0, "p2o5": 15.0, "k2o": 40.0 }, "standard_basal_ratio": { "n": 0.4, "p2o5": 0.8, "k2o": 0.4 } },
@@ -40,6 +40,9 @@
     { "id": "komatsuna", "name": "コマツナ", "emoji": "🥬", "category": "leafy", "nutrient_absorption_kg_10a": { "n": 15.0, "p2o5": 6.0, "k2o": 18.0 }, "standard_basal_ratio": { "n": 0.7, "p2o5": 1.0, "k2o": 0.7 } },
     { "id": "shungiku", "name": "シュンギク（春菊）", "emoji": "🌿", "category": "leafy", "nutrient_absorption_kg_10a": { "n": 15.0, "p2o5": 7.0, "k2o": 18.0 }, "standard_basal_ratio": { "n": 0.7, "p2o5": 1.0, "k2o": 0.7 } },
     { "id": "water_spinach", "name": "エンサイ（空心菜）", "emoji": "🌿", "category": "leafy", "nutrient_absorption_kg_10a": { "n": 20.0, "p2o5": 8.0, "k2o": 20.0 }, "standard_basal_ratio": { "n": 0.3, "p2o5": 0.7, "k2o": 0.3 } },
-    { "id": "okra", "name": "オクラ", "emoji": "🌱", "category": "fruit", "nutrient_absorption_kg_10a": { "n": 18.0, "p2o5": 8.0, "k2o": 20.0 }, "standard_basal_ratio": { "n": 0.4, "p2o5": 0.7, "k2o": 0.4 } }
+    { "id": "okra", "name": "オクラ", "emoji": "🌱", "category": "fruit", "nutrient_absorption_kg_10a": { "n": 18.0, "p2o5": 8.0, "k2o": 20.0 }, "standard_basal_ratio": { "n": 0.4, "p2o5": 0.7, "k2o": 0.4 } },
+    { "id": "rice_koshihikari", "name": "イネ（コシヒカリ）", "emoji": "🌾", "category": "grain", "nutrient_absorption_kg_10a": { "n": 6.5, "p2o5": 8.0, "k2o": 6.5 }, "standard_basal_ratio": { "n": 0.31, "p2o5": 0.75, "k2o": 0.31 } },
+    { "id": "rice_sainokizuna", "name": "イネ（彩のきずな）", "emoji": "🌾", "category": "grain", "nutrient_absorption_kg_10a": { "n": 7.0, "p2o5": 5.0, "k2o": 7.0 }, "standard_basal_ratio": { "n": 0.71, "p2o5": 1.0, "k2o": 0.71 } },
+    { "id": "rice_ayanokagayaki", "name": "イネ（彩のかがやき）", "emoji": "🌾", "category": "grain", "nutrient_absorption_kg_10a": { "n": 7.0, "p2o5": 5.0, "k2o": 7.0 }, "standard_basal_ratio": { "n": 0.71, "p2o5": 1.0, "k2o": 0.71 } }
   ]
 }
