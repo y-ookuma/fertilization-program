@@ -57,13 +57,17 @@ const compostRanges = {
     tuber: { min: 1.5, max: 2, note: "窒素過多を避けて施用してください。" },
     legume: { min: 1, max: 1.5, note: "根粒菌が窒素を供給するため、堆肥は控えめで十分です。" },
     perennial: { min: 3, max: 4, note: "定植・株分け時にまとめて施し、以降は毎年株元に補うと生育が安定します。" },
-    grain: { min: 1, max: 1.5, note: "田植え前によく完熟した堆肥を施用してください。未熟な堆肥や過剰施用は生育後半の過繁茂やいもち病の助長につながるため控えめにしましょう。" }
+    grain: { min: 1, max: 1.5, note: "田植え前によく完熟した堆肥を施用してください。未熟な堆肥や過剰施用は生育後半の過繁茂やいもち病の助長につながるため控えめにしましょう。" },
+    custom: { min: 1.5, max: 2, note: "作物の特性や地域の慣行に応じて、堆肥量を加減してください。" }
 };
 
 const categoryLabel = {
     fruit: "果菜類", leafy: "葉菜類", root: "根菜類", bulb: "りん茎類",
-    tuber: "いも類", legume: "豆類", perennial: "多年生", grain: "穀類"
+    tuber: "いも類", legume: "豆類", perennial: "多年生", grain: "穀類", custom: "任意入力"
 };
+
+// 「作物を直接入力する」を選んだ際に使う特別なcropSelectの値
+const CUSTOM_CROP_VALUE = '__custom__';
 
 // アイコン（SVG）
 const ICONS = {
@@ -105,6 +109,14 @@ const NUTRIENT_DEFS = [
 
 document.addEventListener('DOMContentLoaded', () => {
     const cropSelect = document.getElementById('cropSelect');
+    const customCropFields = document.getElementById('customCropFields');
+    const customCropHint = document.getElementById('customCropHint');
+
+    // 「作物を直接入力する」の選択肢（プレースホルダーの直後に追加）
+    const customOption = document.createElement('option');
+    customOption.value = CUSTOM_CROP_VALUE;
+    customOption.textContent = '✏️ 作物を直接入力する（任意）';
+    cropSelect.appendChild(customOption);
 
     // 作物セレクトボックスの構築
     fertilizerLibrary.crops.forEach(crop => {
@@ -113,6 +125,36 @@ document.addEventListener('DOMContentLoaded', () => {
         option.textContent = `${crop.emoji} ${crop.name}`;
         cropSelect.appendChild(option);
     });
+
+    // 「作物を直接入力する」を選んだ場合のみ、作物名・目標N/P2O5/K2O入力欄を表示する
+    function updateCustomCropVisibility() {
+        const isCustom = cropSelect.value === CUSTOM_CROP_VALUE;
+        customCropFields.style.display = isCustom ? 'grid' : 'none';
+        customCropHint.style.display = isCustom ? 'block' : 'none';
+    }
+    cropSelect.addEventListener('change', updateCustomCropVisibility);
+    updateCustomCropVisibility();
+
+    // 選択中の作物情報を取得する（ライブラリの作物、または任意入力の作物）。
+    // 任意入力の場合、入力されたN・P2O5・K2Oはそのまま目標値として扱う
+    // （nutrient_absorption_kg_10a×standard_basal_ratio=1 とすることで、以降の計算式をそのまま使い回せる）。
+    function getSelectedCrop() {
+        if (cropSelect.value === CUSTOM_CROP_VALUE) {
+            const customName = document.getElementById('customCropName').value.trim();
+            const n = parseFloat(document.getElementById('customTargetN').value) || 0;
+            const p2o5 = parseFloat(document.getElementById('customTargetP').value) || 0;
+            const k2o = parseFloat(document.getElementById('customTargetK').value) || 0;
+            return {
+                id: CUSTOM_CROP_VALUE,
+                name: customName || '任意入力の作物',
+                emoji: '✏️',
+                category: 'custom',
+                nutrient_absorption_kg_10a: { n, p2o5, k2o },
+                standard_basal_ratio: { n: 1, p2o5: 1, k2o: 1 }
+            };
+        }
+        return fertilizerLibrary.crops.find(c => c.id === cropSelect.value);
+    }
 
     // 肥料入力欄（最大8種類）を組み立てる
     const fertRowsContainer = document.getElementById('fertRows');
@@ -561,7 +603,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ---------- パラメータの保存・復元 ----------
     function collectParameterData() {
-        const selectedCrop = fertilizerLibrary.crops.find(c => c.id === cropSelect.value);
+        const selectedCrop = getSelectedCrop();
         const fertilizers = [];
         for (let i = 1; i <= FERT_COUNT; i++) {
             fertilizers.push({
@@ -579,6 +621,12 @@ document.addEventListener('DOMContentLoaded', () => {
             savedAt: new Date().toISOString(),
             cropId: cropSelect.value,
             cropName: selectedCrop ? selectedCrop.name : '',
+            customCrop: {
+                name: document.getElementById('customCropName').value,
+                targetN: document.getElementById('customTargetN').value,
+                targetP: document.getElementById('customTargetP').value,
+                targetK: document.getElementById('customTargetK').value
+            },
             soil: {
                 ph: document.getElementById('soil_ph').value,
                 ec: document.getElementById('soil_ec').value,
@@ -606,6 +654,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!data.soil) throw new Error('invalid format');
 
         cropSelect.value = data.cropId || '';
+        if (data.customCrop) {
+            document.getElementById('customCropName').value = data.customCrop.name || '';
+            document.getElementById('customTargetN').value = data.customCrop.targetN || '';
+            document.getElementById('customTargetP').value = data.customCrop.targetP || '';
+            document.getElementById('customTargetK').value = data.customCrop.targetK || '';
+        }
+        updateCustomCropVisibility();
         document.getElementById('soil_ph').value = data.soil.ph || '';
         document.getElementById('soil_ec').value = data.soil.ec || '';
         document.getElementById('soil_cao').value = data.soil.cao || '';
@@ -984,7 +1039,14 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('作物を選択してください。');
             return;
         }
-        const crop = fertilizerLibrary.crops.find(c => c.id === cropId);
+        const crop = getSelectedCrop();
+        if (cropId === CUSTOM_CROP_VALUE) {
+            const { n, p2o5, k2o } = crop.nutrient_absorption_kg_10a;
+            if (n <= 0 && p2o5 <= 0 && k2o <= 0) {
+                alert('目標N・目標P2O5・目標K2Oのいずれかを入力してください。');
+                return;
+            }
+        }
 
         const soil = {
             ph: parseFloat(document.getElementById('soil_ph').value),
