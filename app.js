@@ -1,4 +1,4 @@
-// 30品目を含む元肥ライブラリデータ
+// 36品目を含む元肥ライブラリデータ
 // category: fruit(果菜) / leafy(葉菜) / root(根菜) / bulb(りん茎) / tuber(いも類) / legume(豆類) / perennial(多年生)
 // targetPh: その作物が好む目安pH（未指定は6.3を既定値として使用。参考情報として保持）
 const fertilizerLibrary = {
@@ -12,11 +12,14 @@ const fertilizerLibrary = {
         { "id": "watermelon", "name": "スイカ", "emoji": "🍉", "category": "fruit", "nutrient_absorption_kg_10a": { "n": 15.0, "p2o5": 8.0, "k2o": 20.0 }, "standard_basal_ratio": { "n": 0.5, "p2o5": 0.8, "k2o": 0.5 } },
         { "id": "melon", "name": "メロン", "emoji": "🍈", "category": "fruit", "nutrient_absorption_kg_10a": { "n": 16.0, "p2o5": 9.0, "k2o": 22.0 }, "standard_basal_ratio": { "n": 0.4, "p2o5": 0.7, "k2o": 0.4 } },
         { "id": "pumpkin", "name": "カボチャ", "emoji": "🎃", "category": "fruit", "nutrient_absorption_kg_10a": { "n": 18.0, "p2o5": 10.0, "k2o": 25.0 }, "standard_basal_ratio": { "n": 0.5, "p2o5": 0.8, "k2o": 0.5 } },
+        { "id": "bitter_melon", "name": "ゴーヤ（ニガウリ）", "emoji": "🥒", "category": "fruit", "nutrient_absorption_kg_10a": { "n": 20.0, "p2o5": 10.0, "k2o": 25.0 }, "standard_basal_ratio": { "n": 0.4, "p2o5": 0.7, "k2o": 0.4 } },
+        { "id": "wax_gourd", "name": "トウガン（冬瓜）", "emoji": "🍈", "category": "fruit", "nutrient_absorption_kg_10a": { "n": 18.0, "p2o5": 9.0, "k2o": 25.0 }, "standard_basal_ratio": { "n": 0.5, "p2o5": 0.8, "k2o": 0.5 } },
         { "id": "cabbage", "name": "キャベツ", "emoji": "🥬", "category": "leafy", "nutrient_absorption_kg_10a": { "n": 24.0, "p2o5": 10.0, "k2o": 28.0 }, "standard_basal_ratio": { "n": 0.5, "p2o5": 0.8, "k2o": 0.5 } },
         { "id": "chinese_cabbage", "name": "ハクサイ", "emoji": "🥬", "category": "leafy", "nutrient_absorption_kg_10a": { "n": 22.0, "p2o5": 9.0, "k2o": 30.0 }, "standard_basal_ratio": { "n": 0.4, "p2o5": 0.8, "k2o": 0.4 } },
         { "id": "spinach_ordinary", "name": "ホウレンソウ", "emoji": "🥬", "category": "leafy", "nutrient_absorption_kg_10a": { "n": 18.0, "p2o5": 8.0, "k2o": 20.0 }, "standard_basal_ratio": { "n": 0.7, "p2o5": 1.0, "k2o": 0.7 } },
         { "id": "lettuce", "name": "レタス・サラダ菜", "emoji": "🥬", "category": "leafy", "nutrient_absorption_kg_10a": { "n": 16.0, "p2o5": 7.0, "k2o": 22.0 }, "standard_basal_ratio": { "n": 0.5, "p2o5": 0.8, "k2o": 0.5 } },
         { "id": "broccoli", "name": "ブロッコリー", "emoji": "🥦", "category": "leafy", "nutrient_absorption_kg_10a": { "n": 25.0, "p2o5": 12.0, "k2o": 28.0 }, "standard_basal_ratio": { "n": 0.4, "p2o5": 0.8, "k2o": 0.4 } },
+        { "id": "cauliflower", "name": "カリフラワー", "emoji": "🥦", "category": "leafy", "nutrient_absorption_kg_10a": { "n": 25.0, "p2o5": 12.0, "k2o": 28.0 }, "standard_basal_ratio": { "n": 0.4, "p2o5": 0.8, "k2o": 0.4 } },
         { "id": "radish", "name": "ダイコン", "emoji": "🫜", "category": "root", "nutrient_absorption_kg_10a": { "n": 20.0, "p2o5": 9.0, "k2o": 25.0 }, "standard_basal_ratio": { "n": 0.4, "p2o5": 0.8, "k2o": 0.4 } },
         { "id": "carrot", "name": "ニンジン", "emoji": "🥕", "category": "root", "nutrient_absorption_kg_10a": { "n": 16.0, "p2o5": 10.0, "k2o": 24.0 }, "standard_basal_ratio": { "n": 0.4, "p2o5": 0.8, "k2o": 0.4 } },
         { "id": "onion", "name": "タマネギ", "emoji": "🧅", "category": "bulb", "nutrient_absorption_kg_10a": { "n": 22.0, "p2o5": 10.0, "k2o": 24.0 }, "standard_basal_ratio": { "n": 0.3, "p2o5": 0.8, "k2o": 0.3 } },
@@ -26,6 +29,7 @@ const fertilizerLibrary = {
         { "id": "corn", "name": "スイートコーン", "emoji": "🌽", "category": "fruit", "nutrient_absorption_kg_10a": { "n": 20.0, "p2o5": 8.0, "k2o": 22.0 }, "standard_basal_ratio": { "n": 0.5, "p2o5": 0.8, "k2o": 0.5 } },
         { "id": "edamame", "name": "エダマメ", "emoji": "🫛", "category": "legume", "nutrient_absorption_kg_10a": { "n": 15.0, "p2o5": 6.0, "k2o": 15.0 }, "standard_basal_ratio": { "n": 0.3, "p2o5": 0.5, "k2o": 0.3 } },
         { "id": "kidney_bean", "name": "インゲンマメ", "emoji": "🫘", "category": "legume", "nutrient_absorption_kg_10a": { "n": 14.0, "p2o5": 6.0, "k2o": 16.0 }, "standard_basal_ratio": { "n": 0.3, "p2o5": 0.6, "k2o": 0.3 } },
+        { "id": "fava_bean", "name": "ソラマメ", "emoji": "🫘", "category": "legume", "nutrient_absorption_kg_10a": { "n": 10.0, "p2o5": 8.0, "k2o": 12.0 }, "standard_basal_ratio": { "n": 0.5, "p2o5": 0.7, "k2o": 0.5 } },
         { "id": "green_onion", "name": "ネギ（長ネギ）", "emoji": "🌱", "category": "bulb", "nutrient_absorption_kg_10a": { "n": 25.0, "p2o5": 12.0, "k2o": 28.0 }, "standard_basal_ratio": { "n": 0.4, "p2o5": 0.7, "k2o": 0.4 } },
         { "id": "garlic", "name": "ニンニク", "emoji": "🧄", "category": "bulb", "nutrient_absorption_kg_10a": { "n": 22.0, "p2o5": 10.0, "k2o": 22.0 }, "standard_basal_ratio": { "n": 0.4, "p2o5": 0.7, "k2o": 0.4 } },
         { "id": "ginger", "name": "ショウガ", "emoji": "🫚", "category": "tuber", "nutrient_absorption_kg_10a": { "n": 25.0, "p2o5": 10.0, "k2o": 30.0 }, "standard_basal_ratio": { "n": 0.4, "p2o5": 0.7, "k2o": 0.4 } },
@@ -33,6 +37,8 @@ const fertilizerLibrary = {
         { "id": "aspalagus", "name": "アスパラガス", "emoji": "🌱", "category": "perennial", "nutrient_absorption_kg_10a": { "n": 22.0, "p2o5": 10.0, "k2o": 28.0 }, "standard_basal_ratio": { "n": 0.3, "p2o5": 0.7, "k2o": 0.3 } },
         { "id": "chinese_chive", "name": "ニラ", "emoji": "🌿", "category": "leafy", "nutrient_absorption_kg_10a": { "n": 20.0, "p2o5": 9.0, "k2o": 22.0 }, "standard_basal_ratio": { "n": 0.3, "p2o5": 0.7, "k2o": 0.3 } },
         { "id": "komatsuna", "name": "コマツナ", "emoji": "🥬", "category": "leafy", "nutrient_absorption_kg_10a": { "n": 15.0, "p2o5": 6.0, "k2o": 18.0 }, "standard_basal_ratio": { "n": 0.7, "p2o5": 1.0, "k2o": 0.7 } },
+        { "id": "shungiku", "name": "シュンギク（春菊）", "emoji": "🌿", "category": "leafy", "nutrient_absorption_kg_10a": { "n": 15.0, "p2o5": 7.0, "k2o": 18.0 }, "standard_basal_ratio": { "n": 0.7, "p2o5": 1.0, "k2o": 0.7 } },
+        { "id": "water_spinach", "name": "エンサイ（空心菜）", "emoji": "🌿", "category": "leafy", "nutrient_absorption_kg_10a": { "n": 20.0, "p2o5": 8.0, "k2o": 20.0 }, "standard_basal_ratio": { "n": 0.3, "p2o5": 0.7, "k2o": 0.3 } },
         { "id": "okra", "name": "オクラ", "emoji": "🌱", "category": "fruit", "nutrient_absorption_kg_10a": { "n": 18.0, "p2o5": 8.0, "k2o": 20.0 }, "standard_basal_ratio": { "n": 0.4, "p2o5": 0.7, "k2o": 0.4 } }
     ]
 };
