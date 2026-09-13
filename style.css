@@ -317,6 +317,14 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus {
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 15px;
 }
+.custom-crop-fields {
+    margin-top: 15px;
+}
+.field-hint {
+    margin-top: 8px;
+    font-size: 0.85em;
+    color: var(--text-muted, #6b7a63);
+}
 .form-group label {
     display: block;
     font-size: 1.066rem;
