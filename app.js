@@ -1,5 +1,7 @@
-// 36品目を含む元肥ライブラリデータ
-// category: fruit(果菜) / leafy(葉菜) / root(根菜) / bulb(りん茎) / tuber(いも類) / legume(豆類) / perennial(多年生)
+// 39品目（野菜36品目・水稲3品種）を含む元肥ライブラリデータ
+// category: fruit(果菜) / leafy(葉菜) / root(根菜) / bulb(りん茎) / tuber(いも類) / legume(豆類) / perennial(多年生) / grain(穀類)
+// 水稲は品種ごとに埼玉県施肥基準（普通期栽培・中苗を基本、コシヒカリのみ早植栽培・稚苗）の基肥/追肥合計値を
+// nutrient_absorption_kg_10a（合計施肥量）とし、その内の基肥量の割合をstandard_basal_ratioとして表現している。
 // targetPh: その作物が好む目安pH（未指定は6.3を既定値として使用。参考情報として保持）
 const fertilizerLibrary = {
     "version": "1.3",
@@ -39,7 +41,10 @@ const fertilizerLibrary = {
         { "id": "komatsuna", "name": "コマツナ", "emoji": "🥬", "category": "leafy", "nutrient_absorption_kg_10a": { "n": 15.0, "p2o5": 6.0, "k2o": 18.0 }, "standard_basal_ratio": { "n": 0.7, "p2o5": 1.0, "k2o": 0.7 } },
         { "id": "shungiku", "name": "シュンギク（春菊）", "emoji": "🌿", "category": "leafy", "nutrient_absorption_kg_10a": { "n": 15.0, "p2o5": 7.0, "k2o": 18.0 }, "standard_basal_ratio": { "n": 0.7, "p2o5": 1.0, "k2o": 0.7 } },
         { "id": "water_spinach", "name": "エンサイ（空心菜）", "emoji": "🌿", "category": "leafy", "nutrient_absorption_kg_10a": { "n": 20.0, "p2o5": 8.0, "k2o": 20.0 }, "standard_basal_ratio": { "n": 0.3, "p2o5": 0.7, "k2o": 0.3 } },
-        { "id": "okra", "name": "オクラ", "emoji": "🌱", "category": "fruit", "nutrient_absorption_kg_10a": { "n": 18.0, "p2o5": 8.0, "k2o": 20.0 }, "standard_basal_ratio": { "n": 0.4, "p2o5": 0.7, "k2o": 0.4 } }
+        { "id": "okra", "name": "オクラ", "emoji": "🌱", "category": "fruit", "nutrient_absorption_kg_10a": { "n": 18.0, "p2o5": 8.0, "k2o": 20.0 }, "standard_basal_ratio": { "n": 0.4, "p2o5": 0.7, "k2o": 0.4 } },
+        { "id": "rice_koshihikari", "name": "イネ（コシヒカリ）", "emoji": "🌾", "category": "grain", "nutrient_absorption_kg_10a": { "n": 6.5, "p2o5": 8.0, "k2o": 6.5 }, "standard_basal_ratio": { "n": 0.31, "p2o5": 0.75, "k2o": 0.31 } },
+        { "id": "rice_sainokizuna", "name": "イネ（彩のきずな）", "emoji": "🌾", "category": "grain", "nutrient_absorption_kg_10a": { "n": 7.0, "p2o5": 5.0, "k2o": 7.0 }, "standard_basal_ratio": { "n": 0.71, "p2o5": 1.0, "k2o": 0.71 } },
+        { "id": "rice_ayanokagayaki", "name": "イネ（彩のかがやき）", "emoji": "🌾", "category": "grain", "nutrient_absorption_kg_10a": { "n": 7.0, "p2o5": 5.0, "k2o": 7.0 }, "standard_basal_ratio": { "n": 0.71, "p2o5": 1.0, "k2o": 0.71 } }
     ]
 };
 
@@ -51,12 +56,13 @@ const compostRanges = {
     bulb: { min: 1.5, max: 2, note: "根の伸長を妨げないよう、植付け前によく耕うんしてください。" },
     tuber: { min: 1.5, max: 2, note: "窒素過多を避けて施用してください。" },
     legume: { min: 1, max: 1.5, note: "根粒菌が窒素を供給するため、堆肥は控えめで十分です。" },
-    perennial: { min: 3, max: 4, note: "定植・株分け時にまとめて施し、以降は毎年株元に補うと生育が安定します。" }
+    perennial: { min: 3, max: 4, note: "定植・株分け時にまとめて施し、以降は毎年株元に補うと生育が安定します。" },
+    grain: { min: 1, max: 1.5, note: "田植え前によく完熟した堆肥を施用してください。未熟な堆肥や過剰施用は生育後半の過繁茂やいもち病の助長につながるため控えめにしましょう。" }
 };
 
 const categoryLabel = {
     fruit: "果菜類", leafy: "葉菜類", root: "根菜類", bulb: "りん茎類",
-    tuber: "いも類", legume: "豆類", perennial: "多年生"
+    tuber: "いも類", legume: "豆類", perennial: "多年生", grain: "穀類"
 };
 
 // アイコン（SVG）
