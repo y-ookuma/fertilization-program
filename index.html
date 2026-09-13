@@ -81,6 +81,26 @@
                 <option value="">-- 作物を選択してください --</option>
             </select>
 
+            <div id="customCropFields" class="grid-form custom-crop-fields" style="display:none;">
+                <div class="form-group custom-crop-name-group">
+                    <label for="customCropName">作物名（任意）</label>
+                    <input type="text" id="customCropName" placeholder="例: 自家系統のトマト">
+                </div>
+                <div class="form-group">
+                    <label for="customTargetN">目標N (kg/10a)</label>
+                    <input type="number" id="customTargetN" step="0.1" min="0" placeholder="例: 20">
+                </div>
+                <div class="form-group">
+                    <label for="customTargetP">目標P2O5 (kg/10a)</label>
+                    <input type="number" id="customTargetP" step="0.1" min="0" placeholder="例: 10">
+                </div>
+                <div class="form-group">
+                    <label for="customTargetK">目標K2O (kg/10a)</label>
+                    <input type="number" id="customTargetK" step="0.1" min="0" placeholder="例: 25">
+                </div>
+            </div>
+            <p class="field-hint" id="customCropHint" style="display:none;">ここで入力したN・P2O5・K2O（kg/10a）が、そのままこの作物の目標値として以降の計算に使われます（未入力の項目は0として扱われます）。</p>
+
             <h3 class="sub-heading">② 土壌分析結果入力</h3>
             <div class="grid-form">
                 <div class="form-group">
@@ -304,7 +324,7 @@
             <h2>施肥設計の手順書</h2>
             <ol>
                 <li><strong>①②③ タブについて:</strong> 画面上部の「① 土壌分析」「② 分析結果と肥料投入量」「③ 施肥設計書」のタブで、表示する内容を切り替えます。②・③のタブは、それぞれ手前のステップで計算（「施肥計算をする」「施肥設計完了」）を行うまでクリックできません。計算後はいつでもタブをクリックして前のステップに戻れます。</li>
-                <li><strong>(1) 土壌分析 ― 栽培作物の選択:</strong> ライブラリから目的の作物を選びます。目標収量に応じた基本養分吸収量が自動で読み込まれます。</li>
+                <li><strong>(1) 土壌分析 ― 栽培作物の選択:</strong> ライブラリから目的の作物を選びます。目標収量に応じた基本養分吸収量が自動で読み込まれます。ライブラリにない作物は「✏️ 作物を直接入力する（任意）」を選ぶと、作物名（任意）と目標N・P2O5・K2O（kg/10a）を自由に入力できます。ここで入力した値はそのままこの作物の目標値として以降の計算（②・③）に使われます。</li>
                 <li><strong>(1) 土壌分析 ― 土壌分析値の入力:</strong> 土壌分析結果の各項目（pH、EC、有効態成分など）を入力し、「施肥計算をする」を押します。(11)推定硝酸態窒素が分かる場合は入力してください。未入力の場合はEC(電気伝導度)から自動推定します。</li>
                 <li><strong>(2) 施肥結果 ― 目標値の確認:</strong> N・P・K・石灰(CaO)・苦土(MgO)それぞれの目標値・残存量・不足量が表示されます。窒素(N)の残存量は、(11)推定硝酸態窒素の入力があればその値を優先し、未入力の場合のみ電気伝導度(EC)から推定します。堆肥や石灰・苦土資材のめやすも合わせて表示されます。</li>
                 <li><strong>(2) 施肥結果 ― 圃場の入力:</strong> 圃場名（任意）と面積（㎡・a・haのいずれか）を入力すると、目標値・不足量が実際の面積に換算されます（面積が未入力の場合は10a=1,000㎡として計算）。</li>
