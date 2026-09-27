@@ -841,19 +841,50 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
     }
 
-    function buildFinalNpkCard(def, need, applied) {
-        const deficit = isFinite(need) ? need : 0;
-        const pct = deficit > 0 ? Math.min(100, (applied / deficit) * 100) : 100;
-        let statusLine;
-        if (deficit <= 0) {
-            statusLine = applied > 0
-                ? `⚠️ 設計量は0kgですが、${applied.toFixed(1)}kg 投入しています`
-                : '✅ 施用の必要はありません';
+    // 施肥後カード：目標・残存・追加・施肥後（残存＋追加）を並べて、目標との過不足を示す。
+    //   N・P2O5・K2O … 目標＝施肥基準の基肥量、残存＝土壌・堆肥から見込める量（基準から差し引いた分）、
+    //                  追加＝肥料の投入量、施肥後＝残存＋追加（kg、面積換算後）
+    //   石灰・苦土   … 目標＝CEC別の適正範囲（mg/100g）、残存＝現状の分析値、
+    //                  施肥後＝現状＋追加(kg/10a)÷換算係数 の推定値（mg/100g）
+    function buildFinalCard(def, result, scale, applied) {
+        const item = result[def.key];
+        const row = (label, value, unit) =>
+            `<div class="final-row"><span class="final-label">${label}</span><span class="final-value"><strong>${value}</strong>${unit}</span></div>`;
+        let rows, pct, status;
+        if (def.key === 'cao' || def.key === 'mgo') {
+            const range = item.range;
+            const measured = item.measured;
+            const addedMg = scale > 0 ? (applied / scale) / result.factor : 0;
+            const after = measured + addedMg;
+            rows = [
+                row('目標（適正範囲）', range ? `${range[0]}〜${range[1]}` : '-', 'mg/100g'),
+                row('残存（現状）', isFinite(measured) ? measured.toFixed(0) : '-', 'mg/100g'),
+                row('追加（肥料）', `${applied.toFixed(1)}kg ＝ +${addedMg.toFixed(1)}`, 'mg/100g'),
+                row('施肥後（推定）', isFinite(after) ? after.toFixed(0) : '-', 'mg/100g')
+            ];
+            const state = Calc.compareRange(after, range);
+            pct = range && isFinite(after) ? Math.min(100, (after / range[0]) * 100) : 0;
+            if (!range) status = 'CECが不明のため判定できません';
+            else if (!isFinite(measured)) status = '分析値が未入力のため判定できません';
+            else if (state === 'ok') status = '✅ 施肥後は適正範囲内の見込みです';
+            else if (state === 'low') status = `⚠️ 下限まで あと ${(range[0] - after).toFixed(0)}mg（約 ${((range[0] - after) * result.factor * scale).toFixed(1)}kg）`;
+            else status = `⚠️ 上限を ${(after - range[1]).toFixed(0)}mg 超える見込みです`;
         } else {
-            const remaining = Math.max(0, deficit - applied);
-            statusLine = remaining <= 0
-                ? `✅ 設計量を満たしています（超過 +${(applied - deficit).toFixed(1)}kg）`
-                : `⚠️ まだ ${remaining.toFixed(1)} kg 不足しています`;
+            const target = item.standard * scale;
+            const residual = (item.soilCredit + item.compostCredit) * scale;
+            const after = residual + applied;
+            const diff = after - target;
+            rows = [
+                row('目標（基準）', target.toFixed(1), 'kg'),
+                row('残存（土壌＋堆肥）', residual.toFixed(1), 'kg'),
+                row('追加（肥料）', applied.toFixed(1), 'kg'),
+                row('施肥後（残存＋追加）', after.toFixed(1), 'kg')
+            ];
+            pct = target > 0 ? Math.max(0, Math.min(100, (after / target) * 100)) : (after > 0 ? 100 : 0);
+            if (target <= 0 && applied <= 0) status = '✅ 基肥の施用基準はありません';
+            else if (target <= 0) status = `⚠️ 基肥の施用基準はありませんが ${applied.toFixed(1)}kg 追加しています`;
+            else if (diff >= -0.05) status = `✅ 目標を満たしています（${diff >= 0.05 ? `+${diff.toFixed(1)}kg` : '過不足なし'}）`;
+            else status = `⚠️ 目標まで あと ${(-diff).toFixed(1)} kg 不足しています`;
         }
         return `
             <div class="npk-card npk-${def.key}">
@@ -867,11 +898,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="npk-bar-track">
                     <div class="npk-bar-fill" style="width:${pct}%;"></div>
                 </div>
-                <div class="npk-numbers">
-                    <span>設計量 <strong>${deficit.toFixed(1)}</strong>kg</span>
-                    <span>投入量 <strong>${applied.toFixed(1)}</strong>kg</span>
-                </div>
-                <div class="npk-deficit-line">${statusLine}</div>
+                <div class="final-rows">${rows.join('')}</div>
+                <div class="npk-deficit-line">${status}</div>
             </div>
         `;
     }
@@ -1104,16 +1132,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const rows = readFertilizerRows();
         const totals = sumFertilizerRows(rows);
-        const need = {};
-        NUTRIENT_DEFS.forEach(def => { need[def.key] = (result[def.key].design || 0) * scale; });
-        lastFertCalc = { areaM2, scale, rows, totals, need };
+        lastFertCalc = { areaM2, scale, rows, totals };
         return lastFertCalc;
     }
 
     function renderFertResult(fc, gridId, tableId) {
         document.getElementById(tableId).innerHTML = buildFertTableHTML(fc.rows, fc.totals);
         document.getElementById(gridId).innerHTML = NUTRIENT_DEFS.map(def =>
-            buildFinalNpkCard(def, fc.need[def.key], fc.totals[def.key])
+            buildFinalCard(def, lastCalc.result, fc.scale, fc.totals[def.key])
         ).join('');
     }
 
@@ -1208,7 +1234,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // 設計量（基準・土壌・堆肥の内訳）と投入量
         renderDesignGrid('finalReportDesignGrid', result, scale);
         document.getElementById('finalReportNpkGrid').innerHTML = NUTRIENT_DEFS.map(def =>
-            buildFinalNpkCard(def, fc.need[def.key], fc.totals[def.key])
+            buildFinalCard(def, lastCalc.result, fc.scale, fc.totals[def.key])
         ).join('');
 
         document.getElementById('finalReportFertTable').innerHTML = buildFertTableHTML(fc.rows, fc.totals);

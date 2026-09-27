@@ -1054,6 +1054,14 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus {
 .a4-export .report-notes-text { font-size: 1.716rem; line-height: 1.85; padding: 20px 22px; }
 .a4-export .disclaimer { font-size: 1.404rem; }
 
+/* ---------- 施肥後カード（目標・残存・追加・施肥後） ---------- */
+.final-rows { margin-top: 10px; display: grid; gap: 4px; }
+.final-row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 1.014rem; color: var(--ink-soft); }
+.final-row:last-child { border-top: 1px dashed rgba(0, 0, 0, 0.15); padding-top: 4px; }
+.final-value strong { color: var(--ink); font-size: 1.15rem; margin-right: 2px; }
+.a4-export .final-row { font-size: 1.482rem; }
+.a4-export .final-value strong { font-size: 1.7rem; }
+
 /* ---------- 県基準対応（作物情報・土壌タイプ・範囲表示） ---------- */
 .crop-info {
     margin: 10px 0 4px;
