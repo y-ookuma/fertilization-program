@@ -50,6 +50,13 @@
         eq(r70.k / r50.k, 1.008, 0.01);
     });
 
+    test('[長野 表1] バーク堆肥・もみがら堆肥 現物1tの有効成分（表の「現物1t中成分例」）', () => {
+        const bark = C.compostSupply({ type: 'bark', tons: 1, moisture: 70 }); // 水分では補正しない
+        eq(bark.n, 0.3, 1e-9); eq(bark.p, 0.5, 1e-9); eq(bark.k, 0.7, 1e-9);
+        const momi = C.compostSupply({ type: 'momigara', tons: 1 });
+        eq(momi.n, 0.5, 1e-9); eq(momi.p, 3.0, 1e-9); eq(momi.k, 4.0, 1e-9);
+    });
+
     // ---- 境界値・取り扱い ----
     test('リン酸減肥率の境界（80・100・200・300mg）', () => {
         eq(C.phosphateReductionRate(79.9), 0); eq(C.phosphateReductionRate(80), 0.2);

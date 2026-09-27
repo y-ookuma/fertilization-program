@@ -6,6 +6,8 @@
 //             野菜編 = r7sehikijun_yasai1.pdf、水稲 = r7sehikijun_shukoku.pdf
 //   [青森]    青森県「健康な土づくり技術マニュアル」（農林水産省 都道府県施肥基準等 掲載）
 //   [藤原2008] 藤原(2008)。JAcom「今さら聞けない営農情報 第18回 土壌の改良(2) EC」(2019)からの二次引用
+//   [長野]    長野県「Ⅲ 有機物の肥効特性」表1「有機物中養分の肥効率のめやす」
+//             https://www.pref.nagano.lg.jp/nogi/documents/yukibutsuhikoutokusei.pdf
 (function (root) {
     'use strict';
 
@@ -225,14 +227,18 @@
         sandy: { fruit: [0.1, 0.4], leafy: [0.1, 0.3] }
     };
 
-    // 家畜ふん堆肥 … [埼玉R7] 技術編 表17（肥効率%）・表18（水分50%現物の成分含量%）(p.25-26)
+    // 堆肥の成分（現物%）と肥効率(%)
+    //   家畜ふん堆肥 … [埼玉R7] 技術編 表17（肥効率）・表18（水分50%現物の成分含量）(p.25-26)。水分で補正する。
+    //   植物質の堆肥 … [長野] 表1（各資材全体の平均値の現物%）。水分の基準が示されていないため補正しない（asIs）。
     const composts = [
         { id: 'cattle', name: '牛ふん堆肥', n: 1.05, p: 1.03, k: 1.10, cao: 1.16, mgo: 0.50, eff: { n: 20, p: 60, k: 90 } },
         { id: 'swine', name: '豚ぷん堆肥', n: 1.43, p: 2.06, k: 1.12, cao: 1.98, mgo: 0.68, eff: { n: 40, p: 60, k: 90 } },
         { id: 'poultry', name: '鶏ふん堆肥', n: 1.45, p: 2.57, k: 1.34, cao: 5.66, mgo: 0.68, eff: { n: 50, p: 70, k: 90 } },
         { id: 'saw_cattle', name: 'おが屑混合 牛ふん堆肥', n: 0.83, p: 0.80, k: 0.85, cao: 0.96, mgo: 0.38, eff: { n: 10, p: 50, k: 90 } },
         { id: 'saw_swine', name: 'おが屑混合 豚ぷん堆肥', n: 1.06, p: 1.69, k: 0.92, cao: 1.68, mgo: 0.54, eff: { n: 20, p: 50, k: 90 } },
-        { id: 'saw_poultry', name: 'おが屑混合 鶏ふん堆肥', n: 0.97, p: 2.05, k: 1.07, cao: 4.56, mgo: 0.48, eff: { n: 25, p: 60, k: 90 } }
+        { id: 'saw_poultry', name: 'おが屑混合 鶏ふん堆肥', n: 0.97, p: 2.05, k: 1.07, cao: 4.56, mgo: 0.48, eff: { n: 25, p: 60, k: 90 } },
+        { id: 'bark', name: 'バーク堆肥', n: 0.3, p: 0.1, k: 0.1, eff: { n: 10, p: 50, k: 70 }, asIs: true, source: '長野県 表1' },
+        { id: 'momigara', name: 'もみがら堆肥', n: 0.5, p: 0.6, k: 0.5, eff: { n: 10, p: 50, k: 80 }, asIs: true, source: '長野県 表1' }
     ];
     const compostBaseMoisture = 50; // 表18の成分含量は水分50%の現物
 

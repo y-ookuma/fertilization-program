@@ -173,7 +173,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const type = compostTypeSelect.value;
         document.getElementById('compostAmountFields').style.display = type ? 'grid' : 'none';
         document.getElementById('compostCustomFields').style.display = type === 'custom' ? 'grid' : 'none';
-        document.getElementById('compostMoistureGroup').style.display = type && type !== 'custom' ? 'block' : 'none';
+        const preset = DATA.composts.find(c => c.id === type);
+        document.getElementById('compostMoistureGroup').style.display = preset && !preset.asIs ? 'block' : 'none';
     }
     compostTypeSelect.addEventListener('change', updateCompostVisibility);
     function getCompostInput() {
@@ -182,6 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return {
             type,
             name: type === 'custom' ? '堆肥（成分を直接入力）' : DATA.composts.find(c => c.id === type).name,
+            source: type === 'custom' ? '入力値' : (DATA.composts.find(c => c.id === type).source || '県基準 表17・18'),
             tons: readNum('compostTons'),
             moisture: readNum('compostMoisture'),
             content: { n: readNum('compostN') || 0, p: readNum('compostP') || 0, k: readNum('compostK') || 0 },
@@ -909,7 +911,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!compostInput || !(compostInput.tons > 0)) {
             return rec + ' 家畜ふん堆肥を使う場合は①で種類と量を入力すると、有効成分を基肥から差し引きます。';
         }
-        return rec + ` 入力：${compostInput.name} ${compostInput.tons} t/10a → 有効成分 N ${supply.n.toFixed(1)}・P2O5 ${supply.p.toFixed(1)}・K2O ${supply.k.toFixed(1)} kg/10a を基肥から差し引きました（肥効率は県基準 表17）。`;
+        return rec + ` 入力：${compostInput.name} ${compostInput.tons} t/10a → 有効成分 N ${supply.n.toFixed(1)}・P2O5 ${supply.p.toFixed(1)}・K2O ${supply.k.toFixed(1)} kg/10a を基肥から差し引きました（成分・肥効率：${compostInput.source}）。`;
     }
 
     function buildLimeAdviceText(result, soil, scale) {

@@ -80,8 +80,9 @@
         return Math.max(0, target - measured) * factor;
     }
 
-    // 堆肥から供給される有効成分（kg/10a）… [埼玉R7] 表17・18
-    //   成分含量(水分50%現物) × (100−水分)/50 で現物水分に補正し、肥効率を掛ける
+    // 堆肥から供給される有効成分（kg/10a）… [埼玉R7] 表17・18、[長野] 表1
+    //   家畜ふん堆肥は 成分含量(水分50%現物) × (100−水分)/50 で現物水分に補正し、肥効率を掛ける。
+    //   asIs の資材（[長野]の現物平均値）は水分で補正しない。
     function compostSupply(compost) {
         const zero = { n: 0, p: 0, k: 0 };
         if (!compost || !compost.type || !isNum(compost.tons) || compost.tons <= 0) return zero;
@@ -93,7 +94,7 @@
             const c = D.composts.find(x => x.id === compost.type);
             if (!c) return zero;
             const moisture = isNum(compost.moisture) ? compost.moisture : D.compostBaseMoisture;
-            const adj = (100 - moisture) / (100 - D.compostBaseMoisture);
+            const adj = c.asIs ? 1 : (100 - moisture) / (100 - D.compostBaseMoisture);
             content = { n: c.n * adj, p: c.p * adj, k: c.k * adj };
             eff = c.eff;
         }
