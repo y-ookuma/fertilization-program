@@ -1,70 +1,6 @@
-// 39品目（野菜36品目・水稲3品種）を含む元肥ライブラリデータ
-// category: fruit(果菜) / leafy(葉菜) / root(根菜) / bulb(りん茎) / tuber(いも類) / legume(豆類) / perennial(多年生) / grain(穀類)
-// 水稲は品種ごとに埼玉県施肥基準（普通期栽培・中苗を基本、コシヒカリのみ早植栽培・稚苗）の基肥/追肥合計値を
-// nutrient_absorption_kg_10a（合計施肥量）とし、その内の基肥量の割合をstandard_basal_ratioとして表現している。
-// targetPh: その作物が好む目安pH（未指定は6.3を既定値として使用。参考情報として保持）
-const fertilizerLibrary = {
-    "version": "1.3",
-    "crops": [
-        { "id": "cucumber_greenhouse", "name": "キュウリ（ハウス栽培）", "emoji": "🥒", "category": "fruit", "nutrient_absorption_kg_10a": { "n": 30.0, "p2o5": 15.0, "k2o": 40.0 }, "standard_basal_ratio": { "n": 0.4, "p2o5": 0.8, "k2o": 0.4 } },
-        { "id": "tomato_greenhouse", "name": "トマト（ハウス）", "emoji": "🍅", "category": "fruit", "nutrient_absorption_kg_10a": { "n": 25.0, "p2o5": 10.0, "k2o": 35.0 }, "standard_basal_ratio": { "n": 0.3, "p2o5": 0.7, "k2o": 0.3 } },
-        { "id": "eggplant", "name": "ナス", "emoji": "🍆", "category": "fruit", "nutrient_absorption_kg_10a": { "n": 32.0, "p2o5": 12.0, "k2o": 38.0 }, "standard_basal_ratio": { "n": 0.4, "p2o5": 0.7, "k2o": 0.4 } },
-        { "id": "bell_pepper", "name": "ピーマン", "emoji": "🫑", "category": "fruit", "nutrient_absorption_kg_10a": { "n": 28.0, "p2o5": 11.0, "k2o": 32.0 }, "standard_basal_ratio": { "n": 0.3, "p2o5": 0.7, "k2o": 0.3 } },
-        { "id": "strawberry", "name": "イチゴ（高設・土耕）", "emoji": "🍓", "category": "fruit", "nutrient_absorption_kg_10a": { "n": 18.0, "p2o5": 8.0, "k2o": 22.0 }, "standard_basal_ratio": { "n": 0.4, "p2o5": 0.8, "k2o": 0.4 } },
-        { "id": "watermelon", "name": "スイカ", "emoji": "🍉", "category": "fruit", "nutrient_absorption_kg_10a": { "n": 15.0, "p2o5": 8.0, "k2o": 20.0 }, "standard_basal_ratio": { "n": 0.5, "p2o5": 0.8, "k2o": 0.5 } },
-        { "id": "melon", "name": "メロン", "emoji": "🍈", "category": "fruit", "nutrient_absorption_kg_10a": { "n": 16.0, "p2o5": 9.0, "k2o": 22.0 }, "standard_basal_ratio": { "n": 0.4, "p2o5": 0.7, "k2o": 0.4 } },
-        { "id": "pumpkin", "name": "カボチャ", "emoji": "🎃", "category": "fruit", "nutrient_absorption_kg_10a": { "n": 18.0, "p2o5": 10.0, "k2o": 25.0 }, "standard_basal_ratio": { "n": 0.5, "p2o5": 0.8, "k2o": 0.5 } },
-        { "id": "bitter_melon", "name": "ゴーヤ（ニガウリ）", "emoji": "🥒", "category": "fruit", "nutrient_absorption_kg_10a": { "n": 20.0, "p2o5": 10.0, "k2o": 25.0 }, "standard_basal_ratio": { "n": 0.4, "p2o5": 0.7, "k2o": 0.4 } },
-        { "id": "wax_gourd", "name": "トウガン（冬瓜）", "emoji": "🍈", "category": "fruit", "nutrient_absorption_kg_10a": { "n": 18.0, "p2o5": 9.0, "k2o": 25.0 }, "standard_basal_ratio": { "n": 0.5, "p2o5": 0.8, "k2o": 0.5 } },
-        { "id": "cabbage", "name": "キャベツ", "emoji": "🥬", "category": "leafy", "nutrient_absorption_kg_10a": { "n": 24.0, "p2o5": 10.0, "k2o": 28.0 }, "standard_basal_ratio": { "n": 0.5, "p2o5": 0.8, "k2o": 0.5 } },
-        { "id": "chinese_cabbage", "name": "ハクサイ", "emoji": "🥬", "category": "leafy", "nutrient_absorption_kg_10a": { "n": 22.0, "p2o5": 9.0, "k2o": 30.0 }, "standard_basal_ratio": { "n": 0.4, "p2o5": 0.8, "k2o": 0.4 } },
-        { "id": "spinach_ordinary", "name": "ホウレンソウ", "emoji": "🥬", "category": "leafy", "nutrient_absorption_kg_10a": { "n": 18.0, "p2o5": 8.0, "k2o": 20.0 }, "standard_basal_ratio": { "n": 0.7, "p2o5": 1.0, "k2o": 0.7 } },
-        { "id": "lettuce", "name": "レタス・サラダ菜", "emoji": "🥬", "category": "leafy", "nutrient_absorption_kg_10a": { "n": 16.0, "p2o5": 7.0, "k2o": 22.0 }, "standard_basal_ratio": { "n": 0.5, "p2o5": 0.8, "k2o": 0.5 } },
-        { "id": "broccoli", "name": "ブロッコリー", "emoji": "🥦", "category": "leafy", "nutrient_absorption_kg_10a": { "n": 25.0, "p2o5": 12.0, "k2o": 28.0 }, "standard_basal_ratio": { "n": 0.4, "p2o5": 0.8, "k2o": 0.4 } },
-        { "id": "cauliflower", "name": "カリフラワー", "emoji": "🥦", "category": "leafy", "nutrient_absorption_kg_10a": { "n": 25.0, "p2o5": 12.0, "k2o": 28.0 }, "standard_basal_ratio": { "n": 0.4, "p2o5": 0.8, "k2o": 0.4 } },
-        { "id": "radish", "name": "ダイコン", "emoji": "🫜", "category": "root", "nutrient_absorption_kg_10a": { "n": 20.0, "p2o5": 9.0, "k2o": 25.0 }, "standard_basal_ratio": { "n": 0.4, "p2o5": 0.8, "k2o": 0.4 } },
-        { "id": "carrot", "name": "ニンジン", "emoji": "🥕", "category": "root", "nutrient_absorption_kg_10a": { "n": 16.0, "p2o5": 10.0, "k2o": 24.0 }, "standard_basal_ratio": { "n": 0.4, "p2o5": 0.8, "k2o": 0.4 } },
-        { "id": "onion", "name": "タマネギ", "emoji": "🧅", "category": "bulb", "nutrient_absorption_kg_10a": { "n": 22.0, "p2o5": 10.0, "k2o": 24.0 }, "standard_basal_ratio": { "n": 0.3, "p2o5": 0.8, "k2o": 0.3 } },
-        { "id": "potato", "name": "ジャガイモ", "emoji": "🥔", "category": "tuber", "targetPh": 5.8, "nutrient_absorption_kg_10a": { "n": 18.0, "p2o5": 10.0, "k2o": 28.0 }, "standard_basal_ratio": { "n": 0.7, "p2o5": 1.0, "k2o": 0.7 } },
-        { "id": "sweet_potato", "name": "サツマイモ", "emoji": "🍠", "category": "tuber", "nutrient_absorption_kg_10a": { "n": 10.0, "p2o5": 6.0, "k2o": 22.0 }, "standard_basal_ratio": { "n": 0.3, "p2o5": 0.5, "k2o": 0.3 } },
-        { "id": "taro", "name": "サトイモ", "emoji": "🫜", "category": "tuber", "nutrient_absorption_kg_10a": { "n": 22.0, "p2o5": 9.0, "k2o": 30.0 }, "standard_basal_ratio": { "n": 0.4, "p2o5": 0.7, "k2o": 0.4 } },
-        { "id": "corn", "name": "スイートコーン", "emoji": "🌽", "category": "fruit", "nutrient_absorption_kg_10a": { "n": 20.0, "p2o5": 8.0, "k2o": 22.0 }, "standard_basal_ratio": { "n": 0.5, "p2o5": 0.8, "k2o": 0.5 } },
-        { "id": "edamame", "name": "エダマメ", "emoji": "🫛", "category": "legume", "nutrient_absorption_kg_10a": { "n": 15.0, "p2o5": 6.0, "k2o": 15.0 }, "standard_basal_ratio": { "n": 0.3, "p2o5": 0.5, "k2o": 0.3 } },
-        { "id": "kidney_bean", "name": "インゲンマメ", "emoji": "🫘", "category": "legume", "nutrient_absorption_kg_10a": { "n": 14.0, "p2o5": 6.0, "k2o": 16.0 }, "standard_basal_ratio": { "n": 0.3, "p2o5": 0.6, "k2o": 0.3 } },
-        { "id": "fava_bean", "name": "ソラマメ", "emoji": "🫘", "category": "legume", "nutrient_absorption_kg_10a": { "n": 10.0, "p2o5": 8.0, "k2o": 12.0 }, "standard_basal_ratio": { "n": 0.5, "p2o5": 0.7, "k2o": 0.5 } },
-        { "id": "green_onion", "name": "ネギ（長ネギ）", "emoji": "🌱", "category": "bulb", "nutrient_absorption_kg_10a": { "n": 25.0, "p2o5": 12.0, "k2o": 28.0 }, "standard_basal_ratio": { "n": 0.4, "p2o5": 0.7, "k2o": 0.4 } },
-        { "id": "garlic", "name": "ニンニク", "emoji": "🧄", "category": "bulb", "nutrient_absorption_kg_10a": { "n": 22.0, "p2o5": 10.0, "k2o": 22.0 }, "standard_basal_ratio": { "n": 0.4, "p2o5": 0.7, "k2o": 0.4 } },
-        { "id": "ginger", "name": "ショウガ", "emoji": "🫚", "category": "tuber", "nutrient_absorption_kg_10a": { "n": 25.0, "p2o5": 10.0, "k2o": 30.0 }, "standard_basal_ratio": { "n": 0.4, "p2o5": 0.7, "k2o": 0.4 } },
-        { "id": "celery", "name": "セロリ", "emoji": "🌿", "category": "leafy", "nutrient_absorption_kg_10a": { "n": 35.0, "p2o5": 14.0, "k2o": 45.0 }, "standard_basal_ratio": { "n": 0.4, "p2o5": 0.8, "k2o": 0.4 } },
-        { "id": "aspalagus", "name": "アスパラガス", "emoji": "🌱", "category": "perennial", "nutrient_absorption_kg_10a": { "n": 22.0, "p2o5": 10.0, "k2o": 28.0 }, "standard_basal_ratio": { "n": 0.3, "p2o5": 0.7, "k2o": 0.3 } },
-        { "id": "chinese_chive", "name": "ニラ", "emoji": "🌿", "category": "leafy", "nutrient_absorption_kg_10a": { "n": 20.0, "p2o5": 9.0, "k2o": 22.0 }, "standard_basal_ratio": { "n": 0.3, "p2o5": 0.7, "k2o": 0.3 } },
-        { "id": "komatsuna", "name": "コマツナ", "emoji": "🥬", "category": "leafy", "nutrient_absorption_kg_10a": { "n": 15.0, "p2o5": 6.0, "k2o": 18.0 }, "standard_basal_ratio": { "n": 0.7, "p2o5": 1.0, "k2o": 0.7 } },
-        { "id": "shungiku", "name": "シュンギク（春菊）", "emoji": "🌿", "category": "leafy", "nutrient_absorption_kg_10a": { "n": 15.0, "p2o5": 7.0, "k2o": 18.0 }, "standard_basal_ratio": { "n": 0.7, "p2o5": 1.0, "k2o": 0.7 } },
-        { "id": "water_spinach", "name": "エンサイ（空心菜）", "emoji": "🌿", "category": "leafy", "nutrient_absorption_kg_10a": { "n": 20.0, "p2o5": 8.0, "k2o": 20.0 }, "standard_basal_ratio": { "n": 0.3, "p2o5": 0.7, "k2o": 0.3 } },
-        { "id": "okra", "name": "オクラ", "emoji": "🌱", "category": "fruit", "nutrient_absorption_kg_10a": { "n": 18.0, "p2o5": 8.0, "k2o": 20.0 }, "standard_basal_ratio": { "n": 0.4, "p2o5": 0.7, "k2o": 0.4 } },
-        { "id": "rice_koshihikari", "name": "イネ（コシヒカリ）", "emoji": "🌾", "category": "grain", "nutrient_absorption_kg_10a": { "n": 6.5, "p2o5": 8.0, "k2o": 6.5 }, "standard_basal_ratio": { "n": 0.31, "p2o5": 0.75, "k2o": 0.31 } },
-        { "id": "rice_sainokizuna", "name": "イネ（彩のきずな）", "emoji": "🌾", "category": "grain", "nutrient_absorption_kg_10a": { "n": 7.0, "p2o5": 5.0, "k2o": 7.0 }, "standard_basal_ratio": { "n": 0.71, "p2o5": 1.0, "k2o": 0.71 } },
-        { "id": "rice_ayanokagayaki", "name": "イネ（彩のかがやき）", "emoji": "🌾", "category": "grain", "nutrient_absorption_kg_10a": { "n": 7.0, "p2o5": 5.0, "k2o": 7.0 }, "standard_basal_ratio": { "n": 0.71, "p2o5": 1.0, "k2o": 0.71 } }
-    ]
-};
-
-// 作物カテゴリー別の堆肥めやす（t/10a のレンジと一言メモ）
-const compostRanges = {
-    fruit: { min: 2, max: 3, note: "植付けの3週間以上前に施用してください。実つきを良くする土づくりの土台になります。" },
-    leafy: { min: 1.5, max: 2, note: "窒素が効きすぎると軟弱徒長しやすいので、入れすぎに注意しましょう。" },
-    root: { min: 1.5, max: 2, note: "未熟な堆肥は又根（またね）の原因になります。完熟堆肥を使い、前作からの持ち越しも意識してください。" },
-    bulb: { min: 1.5, max: 2, note: "根の伸長を妨げないよう、植付け前によく耕うんしてください。" },
-    tuber: { min: 1.5, max: 2, note: "窒素過多を避けて施用してください。" },
-    legume: { min: 1, max: 1.5, note: "根粒菌が窒素を供給するため、堆肥は控えめで十分です。" },
-    perennial: { min: 3, max: 4, note: "定植・株分け時にまとめて施し、以降は毎年株元に補うと生育が安定します。" },
-    grain: { min: 1, max: 1.5, note: "田植え前によく完熟した堆肥を施用してください。未熟な堆肥や過剰施用は生育後半の過繁茂やいもち病の助長につながるため控えめにしましょう。" },
-    custom: { min: 1.5, max: 2, note: "作物の特性や地域の慣行に応じて、堆肥量を加減してください。" }
-};
-
-const categoryLabel = {
-    fruit: "果菜類", leafy: "葉菜類", root: "根菜類", bulb: "りん茎類",
-    tuber: "いも類", legume: "豆類", perennial: "多年生", grain: "穀類", custom: "任意入力"
-};
+// 画面の操作・表示。計算は calc.js（FertCalc）、基準データは saitama-data.js（FERT_DATA）にある。
+const DATA = window.FERT_DATA;
+const Calc = window.FertCalc;
 
 // 「作物を直接入力する」を選んだ際に使う特別なcropSelectの値
 const CUSTOM_CROP_VALUE = '__custom__';
@@ -81,23 +17,9 @@ const ICONS = {
 // ---- 定数 ----
 const AREA_DEFAULT_M2 = 1000;      // 未入力時は10a(1,000㎡)として計算
 const AREA_UNIT_FACTOR = { m2: 1, a: 100, ha: 10000 };
-const MG100G_TO_KG10A = 0.15;      // mg/100g → kg/10a の簡易換算係数（P2O5・K2O・CaO・MgOで共通使用）
-const TARGET_CAO_MG100G = 300;     // 石灰(CaO)の目安値 mg/100g
-const TARGET_MGO_MG100G = 40;      // 苦土(MgO)の目安値 mg/100g
-const EC_TO_NO3N_MG100G = 80;      // EC(mS/cm) → 推定硝酸態窒素(mg/100g) の簡易換算係数
-const DEFAULT_EC = 0.3;            // ECが未入力の場合に仮定する値 (mS/cm)
-const DEFAULT_TARGET_PH = 6.3;     // pHの目安値（作物にtargetPhの指定がない場合）
+const DEFAULT_DEPTH_CM = 15;       // 作土深の既定値
+const LIME_CAO_PCT = 53;           // 炭酸カルシウムのCaO成分(%) … [青森] p.35
 const FERT_COUNT = 8;
-
-// 土壌分析結果の「過不足バッジ」用の目安値（N・P2O5・K2O・CaO・MgOは別途5養分の目標値を使用する）
-const SOIL_ITEM_REFERENCE = {
-    ec: 0.4,            // 電気伝導度 (mS/cm) の目安値
-    cec: 15,            // CEC (me) の目安値
-    base_sat: 75,       // 塩基飽和度 (%) の目安値
-    cao_mgo_ratio: 5,   // 石灰/苦土比の目安値
-    mgo_k2o_ratio: 2    // 苦土/加里比の目安値
-};
-const SOIL_BADGE_TOLERANCE_PCT = 5; // 目安値との差がこの割合未満なら「適正」とみなす
 
 const NUTRIENT_DEFS = [
     { key: 'n',   label: '窒素 (N)',       sub: '葉と茎を育てる' },
@@ -107,56 +29,167 @@ const NUTRIENT_DEFS = [
     { key: 'mgo', label: '苦土 (MgO)',     sub: '葉緑素をつくる' }
 ];
 
+const SOIL_FIELDS = ['ph', 'ec', 'cao', 'mgo', 'k2o', 'p2o5', 'cec', 'base_sat', 'cao_mgo_ratio', 'mgo_k2o_ratio', 'no3n', 'nh4n'];
+
+function cropLabel(crop) {
+    return crop.cropType ? `${crop.name}（${crop.cropType}）` : crop.name;
+}
+
+function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, (ch) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[ch]);
+}
+
+// 入力欄の数値を読む（空欄はNaN＝未測定として扱う）
+function readNum(id) {
+    const raw = document.getElementById(id).value;
+    if (String(raw).trim() === '') return NaN;
+    return parseFloat(raw);
+}
+
+const fmt1 = (v) => (isFinite(v) ? v.toFixed(1) : '-');
+
 document.addEventListener('DOMContentLoaded', () => {
     const cropSelect = document.getElementById('cropSelect');
+    let lastCalc = null;      // (1) 施肥計算をする、時点の情報
+    let lastFertCalc = null;  // (2) 投入量を計算する、時点の情報
     const customCropFields = document.getElementById('customCropFields');
     const customCropHint = document.getElementById('customCropHint');
 
-    // 「作物を直接入力する」の選択肢（プレースホルダーの直後に追加）
+    // ---------- 作物セレクト（県基準は作物ごと、その他は参考値としてまとめる） ----------
     const customOption = document.createElement('option');
     customOption.value = CUSTOM_CROP_VALUE;
-    customOption.textContent = '✏️ 作物を直接入力する（任意）';
+    customOption.textContent = '✏️ 作物・基肥量を直接入力する';
     cropSelect.appendChild(customOption);
 
-    // 作物セレクトボックスの構築
-    fertilizerLibrary.crops.forEach(crop => {
-        const option = document.createElement('option');
-        option.value = crop.id;
-        option.textContent = `${crop.emoji} ${crop.name}`;
-        cropSelect.appendChild(option);
+    const groups = [];
+    DATA.crops.forEach(crop => {
+        const label = crop.source === 'saitama' ? `${crop.name}（埼玉県施肥基準）` : '参考値（県基準に掲載なし・出典未確認）';
+        let group = groups.find(g => g.label === label);
+        if (!group) { group = { label, crops: [] }; groups.push(group); }
+        group.crops.push(crop);
+    });
+    groups.forEach(group => {
+        const og = document.createElement('optgroup');
+        og.label = group.label;
+        group.crops.forEach(crop => {
+            const option = document.createElement('option');
+            option.value = crop.id;
+            option.textContent = `${crop.emoji} ${cropLabel(crop)}`;
+            og.appendChild(option);
+        });
+        cropSelect.appendChild(og);
     });
 
-    // 「作物を直接入力する」を選んだ場合のみ、作物名・目標N/P2O5/K2O入力欄を表示する
     function updateCustomCropVisibility() {
         const isCustom = cropSelect.value === CUSTOM_CROP_VALUE;
         customCropFields.style.display = isCustom ? 'grid' : 'none';
         customCropHint.style.display = isCustom ? 'block' : 'none';
+        updateCropInfo();
     }
     cropSelect.addEventListener('change', updateCustomCropVisibility);
-    updateCustomCropVisibility();
 
-    // 選択中の作物情報を取得する（ライブラリの作物、または任意入力の作物）。
-    // 任意入力の場合、入力されたN・P2O5・K2Oはそのまま目標値として扱う
-    // （nutrient_absorption_kg_10a×standard_basal_ratio=1 とすることで、以降の計算式をそのまま使い回せる）。
+    // 選択中の作物（県基準の作物、参考値の作物、または任意入力の作物）
     function getSelectedCrop() {
         if (cropSelect.value === CUSTOM_CROP_VALUE) {
             const customName = document.getElementById('customCropName').value.trim();
-            const n = parseFloat(document.getElementById('customTargetN').value) || 0;
-            const p2o5 = parseFloat(document.getElementById('customTargetP').value) || 0;
-            const k2o = parseFloat(document.getElementById('customTargetK').value) || 0;
             return {
                 id: CUSTOM_CROP_VALUE,
                 name: customName || '任意入力の作物',
+                cropType: '',
                 emoji: '✏️',
-                category: 'custom',
-                nutrient_absorption_kg_10a: { n, p2o5, k2o },
-                standard_basal_ratio: { n: 1, p2o5: 1, k2o: 1 }
+                ecClass: document.getElementById('customEcClass').value,
+                basal: {
+                    n: parseFloat(document.getElementById('customTargetN').value) || 0,
+                    p: parseFloat(document.getElementById('customTargetP').value) || 0,
+                    k: parseFloat(document.getElementById('customTargetK').value) || 0
+                },
+                compost: null,
+                source: 'custom'
             };
         }
-        return fertilizerLibrary.crops.find(c => c.id === cropSelect.value);
+        return DATA.crops.find(c => c.id === cropSelect.value);
     }
 
-    // 肥料入力欄（最大8種類）を組み立てる
+    // 作物を選んだときに、県基準の基肥量と出典を表示する
+    function updateCropInfo() {
+        const info = document.getElementById('cropInfo');
+        const crop = cropSelect.value && cropSelect.value !== CUSTOM_CROP_VALUE ? getSelectedCrop() : null;
+        if (!crop) { info.style.display = 'none'; return; }
+        const src = crop.source === 'saitama'
+            ? `埼玉県主要農作物施肥基準（令和7年）${crop.page}`
+            : '県基準に掲載のない作物のため、旧ライブラリの参考値（養分吸収量×標準元肥比率、出典未確認）';
+        const total = crop.total ? `／ 合計（基肥＋追肥） N ${crop.total.n}・P2O5 ${crop.total.p}・K2O ${crop.total.k}` : '';
+        info.innerHTML = `基肥 N <strong>${crop.basal.n}</strong>・P2O5 <strong>${crop.basal.p}</strong>・K2O <strong>${crop.basal.k}</strong> kg/10a ${total}<br><span class="crop-info-src">出典：${escapeHtml(src)}</span>`
+            + (crop.note ? `<br><span class="crop-info-note">📌 ${escapeHtml(crop.note)}</span>` : '');
+        info.classList.toggle('is-reference', crop.source !== 'saitama');
+        info.style.display = 'block';
+    }
+
+    // ---------- 土壌タイプ（仮比重・代表CECを自動入力） ----------
+    const soilTypeSelect = document.getElementById('soilType');
+    DATA.soilTypes.forEach(t => {
+        const option = document.createElement('option');
+        option.value = t.id;
+        option.textContent = t.name;
+        soilTypeSelect.appendChild(option);
+    });
+    function getSoilType() {
+        return DATA.soilTypes.find(t => t.id === soilTypeSelect.value) || DATA.soilTypes.find(t => t.id === 'other');
+    }
+    function applySoilTypeDefaults() {
+        const t = getSoilType();
+        document.getElementById('soilBd').value = t.bd;
+        document.getElementById('soil_cec').placeholder = t.cec ? `未入力なら${t.cec}（土壌タイプの代表値）` : '例: 15.0（必須）';
+        updateConversionPreview();
+    }
+    function getDepth() {
+        const v = readNum('soilDepth');
+        return v > 0 ? v : DEFAULT_DEPTH_CM;
+    }
+    function getBd() {
+        const v = readNum('soilBd');
+        return v > 0 ? v : getSoilType().bd;
+    }
+    function updateConversionPreview() {
+        const factor = Calc.conversionFactor(getDepth(), getBd());
+        document.getElementById('conversionPreview').textContent =
+            `→ 土壌分析値 1 mg/100g ＝ ${factor.toFixed(2)} kg/10a（作土深 ${getDepth()}cm ÷ 10 × 仮比重 ${getBd()}）`;
+    }
+    soilTypeSelect.addEventListener('change', applySoilTypeDefaults);
+    document.getElementById('soilDepth').addEventListener('input', updateConversionPreview);
+    document.getElementById('soilBd').addEventListener('input', updateConversionPreview);
+
+    // ---------- 堆肥（任意） ----------
+    const compostTypeSelect = document.getElementById('compostType');
+    DATA.composts.forEach(c => {
+        const option = document.createElement('option');
+        option.value = c.id;
+        option.textContent = c.name;
+        compostTypeSelect.insertBefore(option, compostTypeSelect.querySelector('option[value="custom"]'));
+    });
+    function updateCompostVisibility() {
+        const type = compostTypeSelect.value;
+        document.getElementById('compostAmountFields').style.display = type ? 'grid' : 'none';
+        document.getElementById('compostCustomFields').style.display = type === 'custom' ? 'grid' : 'none';
+        document.getElementById('compostMoistureGroup').style.display = type && type !== 'custom' ? 'block' : 'none';
+    }
+    compostTypeSelect.addEventListener('change', updateCompostVisibility);
+    function getCompostInput() {
+        const type = compostTypeSelect.value;
+        if (!type) return null;
+        return {
+            type,
+            name: type === 'custom' ? '堆肥（成分を直接入力）' : DATA.composts.find(c => c.id === type).name,
+            tons: readNum('compostTons'),
+            moisture: readNum('compostMoisture'),
+            content: { n: readNum('compostN') || 0, p: readNum('compostP') || 0, k: readNum('compostK') || 0 },
+            eff: { n: readNum('compostEffN') || 0, p: readNum('compostEffP') || 0, k: readNum('compostEffK') || 0 }
+        };
+    }
+
+    // ---------- 肥料入力欄（最大8種類） ----------
     const fertRowsContainer = document.getElementById('fertRows');
     let fertRowsHtml = '';
     for (let i = 1; i <= FERT_COUNT; i++) {
@@ -240,15 +273,15 @@ document.addEventListener('DOMContentLoaded', () => {
         return columnIndex;
     }
 
-    // "6〜8"や"マンガン0.5%"のような非数値混じりの文字列からも、読み取れる範囲で数値を抽出する
+    // セル全体が数値（末尾の%は可、全角数字も可）の場合だけ読み取る。
+    // "6〜8" のような範囲表記や "マンガン0.5%" のような文字列は空欄（null）として扱う。
     function extractNumberFromCell(text) {
         if (text === undefined || text === null) return null;
-        const trimmed = String(text).trim();
-        if (trimmed === '') return null;
-        const match = trimmed.match(/-?\d+(\.\d+)?/);
-        if (!match) return null;
-        const value = parseFloat(match[0]);
-        return isNaN(value) ? null : value;
+        const trimmed = String(text).trim()
+            .replace(/[０-９．]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0xFEE0))
+            .replace(/[%％]$/, '').trim();
+        if (!/^-?\d+(\.\d+)?$/.test(trimmed)) return null;
+        return parseFloat(trimmed);
     }
 
     // 簡易CSVパーサー（ダブルクォート囲み・エスケープに対応）
@@ -298,15 +331,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 ? cells[columnIndex.category].trim()
                 : lastCategory;
             lastCategory = category;
+            const pick = (field) => columnIndex[field] !== undefined ? extractNumberFromCell(cells[columnIndex[field]]) : null;
             items.push({
                 category: category || 'その他',
                 name: name,
-                n: columnIndex.n !== undefined ? extractNumberFromCell(cells[columnIndex.n]) : null,
-                p: columnIndex.p !== undefined ? extractNumberFromCell(cells[columnIndex.p]) : null,
-                k: columnIndex.k !== undefined ? extractNumberFromCell(cells[columnIndex.k]) : null,
-                cao: columnIndex.cao !== undefined ? extractNumberFromCell(cells[columnIndex.cao]) : null,
-                mgo: columnIndex.mgo !== undefined ? extractNumberFromCell(cells[columnIndex.mgo]) : null,
-                bagWeight: columnIndex.bagWeight !== undefined ? extractNumberFromCell(cells[columnIndex.bagWeight]) : null
+                n: pick('n'), p: pick('p'), k: pick('k'), cao: pick('cao'), mgo: pick('mgo'), bagWeight: pick('bagWeight')
             });
         }
         return items;
@@ -323,7 +352,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
         const utf8Text = tryDecode('utf-8');
-        const replacementCount = utf8Text ? (utf8Text.match(/\uFFFD/g) || []).length : Infinity;
+        const replacementCount = utf8Text ? (utf8Text.match(/�/g) || []).length : Infinity;
         if (utf8Text && replacementCount === 0) return utf8Text;
 
         const sjisText = tryDecode('shift_jis');
@@ -359,26 +388,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function escapeHtml(str) {
-        return String(str).replace(/[&<>"']/g, (ch) => ({
-            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-        })[ch]);
-    }
-
     function applyFertCsvSelection(rowIndex, itemIndex) {
         if (itemIndex === '' || itemIndex === null || itemIndex === undefined) return;
         const item = fertilizerCsvList[parseInt(itemIndex, 10)];
         if (!item) return;
 
         // 選択し直した場合に前の肥料の値が混在しないよう、先に各項目を初期化する
-        document.getElementById(`fert_name_${rowIndex}`).value = '';
-        document.getElementById(`fert_n_${rowIndex}`).value = '';
-        document.getElementById(`fert_p_${rowIndex}`).value = '';
-        document.getElementById(`fert_k_${rowIndex}`).value = '';
-        document.getElementById(`fert_cao_${rowIndex}`).value = '';
-        document.getElementById(`fert_mgo_${rowIndex}`).value = '';
-        document.getElementById(`fert_bagweight_${rowIndex}`).value = '';
-        document.getElementById(`fert_amount_${rowIndex}`).value = '';
+        ['name', 'n', 'p', 'k', 'cao', 'mgo', 'bagweight', 'amount'].forEach(f => {
+            document.getElementById(`fert_${f}_${rowIndex}`).value = '';
+        });
 
         document.getElementById(`fert_name_${rowIndex}`).value = item.name;
         if (item.n !== null) document.getElementById(`fert_n_${rowIndex}`).value = item.n;
@@ -392,6 +410,7 @@ document.addEventListener('DOMContentLoaded', () => {
     for (let i = 1; i <= FERT_COUNT; i++) {
         document.getElementById(`fert_csv_select_${i}`).addEventListener('change', (e) => {
             applyFertCsvSelection(i, e.target.value);
+            invalidateStep3();
         });
     }
 
@@ -476,17 +495,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const cropListModal = document.getElementById('cropListModal');
 
     function buildCropListTableHTML() {
-        const rows = fertilizerLibrary.crops.map(crop => {
-            const tN = crop.nutrient_absorption_kg_10a.n * crop.standard_basal_ratio.n;
-            const tP = crop.nutrient_absorption_kg_10a.p2o5 * crop.standard_basal_ratio.p2o5;
-            const tK = crop.nutrient_absorption_kg_10a.k2o * crop.standard_basal_ratio.k2o;
+        const rows = DATA.crops.map(crop => {
+            const t = crop.total;
             return `
-                <tr>
-                    <td class="fert-name-cell">${crop.emoji} ${crop.name}</td>
-                    <td>${categoryLabel[crop.category] || ''}</td>
-                    <td>${tN.toFixed(1)}</td>
-                    <td>${tP.toFixed(1)}</td>
-                    <td>${tK.toFixed(1)}</td>
+                <tr${crop.source !== 'saitama' ? ' class="is-reference-row"' : ''}>
+                    <td class="fert-name-cell">${crop.emoji} ${escapeHtml(crop.name)}</td>
+                    <td>${escapeHtml(crop.cropType || '-')}</td>
+                    <td>${crop.basal.n}</td>
+                    <td>${crop.basal.p}</td>
+                    <td>${crop.basal.k}</td>
+                    <td>${t ? `${t.n} / ${t.p} / ${t.k}` : '-'}</td>
+                    <td>${crop.source === 'saitama' ? escapeHtml(crop.page) : '参考値（出典未確認）'}</td>
                 </tr>
             `;
         }).join('');
@@ -496,10 +515,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 <thead>
                     <tr>
                         <th>作物名</th>
-                        <th>分類</th>
-                        <th>目標N(kg)</th>
-                        <th>目標P2O5(kg)</th>
-                        <th>目標K2O(kg)</th>
+                        <th>作型</th>
+                        <th>基肥N</th>
+                        <th>基肥P2O5</th>
+                        <th>基肥K2O</th>
+                        <th>合計 N/P/K</th>
+                        <th>出典</th>
                     </tr>
                 </thead>
                 <tbody>${rows}</tbody>
@@ -532,7 +553,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('section' + step).scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    // まだ到達していないステップのタブを解放する（施肥計算・投入量計算完了時に呼び出す）
     function unlockStepTab(step) {
         const tab = document.querySelector('.flow-step[data-step="' + step + '"]');
         if (tab) {
@@ -542,7 +562,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ステップのタブを再びロックする（パラメータ復元など、計算結果が古くなった場合に呼び出す）
     function lockStepTab(step) {
         const tab = document.querySelector('.flow-step[data-step="' + step + '"]');
         if (tab) {
@@ -559,6 +578,24 @@ document.addEventListener('DOMContentLoaded', () => {
             showStep(step);
         });
     });
+
+    // ①の入力が変わったら、②・③の結果は古くなるのでロックし、再計算を促す
+    function invalidateStep2() {
+        if (!lastCalc) return;
+        lastCalc = null;
+        lastFertCalc = null;
+        lockStepTab(2);
+        lockStepTab(3);
+        document.getElementById('staleNotice').style.display = 'block';
+    }
+    // ②の入力が変わったら、③の施肥設計書は古くなるのでロックする
+    function invalidateStep3() {
+        lockStepTab(3);
+    }
+    document.getElementById('section1').addEventListener('input', invalidateStep2);
+    document.getElementById('section1').addEventListener('change', invalidateStep2);
+    document.getElementById('section2').addEventListener('input', invalidateStep3);
+    document.getElementById('section2').addEventListener('change', invalidateStep3);
 
     // ---------- 面積の取得・換算 ----------
     function getAreaM2() {
@@ -577,7 +614,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     document.getElementById('areaValue').addEventListener('input', updateAreaConvertedDisplay);
     document.getElementById('areaUnit').addEventListener('change', updateAreaConvertedDisplay);
-    updateAreaConvertedDisplay();
 
     // ---------- 特筆事項（任意・最大400文字）の文字数カウンター ----------
     const SPECIAL_NOTES_MAX_LENGTH = 400;
@@ -589,7 +625,6 @@ document.addEventListener('DOMContentLoaded', () => {
         specialNotesCounter.classList.toggle('is-near-limit', len >= SPECIAL_NOTES_MAX_LENGTH * 0.9);
     }
     specialNotesInput.addEventListener('input', updateSpecialNotesCounter);
-    updateSpecialNotesCounter();
 
     // ---------- ファイル名サニタイズ・日付 ----------
     function sanitizeFilename(name) {
@@ -602,6 +637,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ---------- パラメータの保存・復元 ----------
+    const EXTRA_INPUT_IDS = ['soilType', 'soilDepth', 'soilBd', 'compostType', 'compostTons', 'compostMoisture',
+        'compostN', 'compostP', 'compostK', 'compostEffN', 'compostEffP', 'compostEffK', 'customEcClass'];
+
     function collectParameterData() {
         const selectedCrop = getSelectedCrop();
         const fertilizers = [];
@@ -617,29 +655,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 amount: document.getElementById(`fert_amount_${i}`).value
             });
         }
+        const soil = {};
+        SOIL_FIELDS.forEach(f => { soil[f] = document.getElementById(`soil_${f}`).value; });
+        const settings = {};
+        EXTRA_INPUT_IDS.forEach(id => { settings[id] = document.getElementById(id).value; });
         return {
+            version: 2,
             savedAt: new Date().toISOString(),
             cropId: cropSelect.value,
-            cropName: selectedCrop ? selectedCrop.name : '',
+            cropName: selectedCrop ? cropLabel(selectedCrop) : '',
             customCrop: {
                 name: document.getElementById('customCropName').value,
                 targetN: document.getElementById('customTargetN').value,
                 targetP: document.getElementById('customTargetP').value,
                 targetK: document.getElementById('customTargetK').value
             },
-            soil: {
-                ph: document.getElementById('soil_ph').value,
-                ec: document.getElementById('soil_ec').value,
-                cao: document.getElementById('soil_cao').value,
-                mgo: document.getElementById('soil_mgo').value,
-                k2o: document.getElementById('soil_k2o').value,
-                p2o5: document.getElementById('soil_p2o5').value,
-                cec: document.getElementById('soil_cec').value,
-                base_sat: document.getElementById('soil_base_sat').value,
-                cao_mgo_ratio: document.getElementById('soil_cao_mgo_ratio').value,
-                mgo_k2o_ratio: document.getElementById('soil_mgo_k2o_ratio').value,
-                no3n: document.getElementById('soil_no3n').value
-            },
+            soil,
+            settings,
             area: {
                 value: document.getElementById('areaValue').value,
                 unit: document.getElementById('areaUnit').value,
@@ -653,25 +685,27 @@ document.addEventListener('DOMContentLoaded', () => {
     function applyParameterData(data) {
         if (!data.soil) throw new Error('invalid format');
 
-        cropSelect.value = data.cropId || '';
+        // 旧バージョンの作物IDは新しいIDへ読み替える
+        const cropId = DATA.legacyCropIds[data.cropId] || data.cropId || '';
+        cropSelect.value = cropId;
+        if (cropSelect.value !== cropId) cropSelect.value = '';
         if (data.customCrop) {
             document.getElementById('customCropName').value = data.customCrop.name || '';
             document.getElementById('customTargetN').value = data.customCrop.targetN || '';
             document.getElementById('customTargetP').value = data.customCrop.targetP || '';
             document.getElementById('customTargetK').value = data.customCrop.targetK || '';
         }
+        SOIL_FIELDS.forEach(f => { document.getElementById(`soil_${f}`).value = data.soil[f] || ''; });
+
+        const settings = data.settings || {};
+        if (settings.soilType) soilTypeSelect.value = settings.soilType;
+        applySoilTypeDefaults();
+        EXTRA_INPUT_IDS.forEach(id => {
+            if (id !== 'soilType' && settings[id] !== undefined && settings[id] !== '') document.getElementById(id).value = settings[id];
+        });
         updateCustomCropVisibility();
-        document.getElementById('soil_ph').value = data.soil.ph || '';
-        document.getElementById('soil_ec').value = data.soil.ec || '';
-        document.getElementById('soil_cao').value = data.soil.cao || '';
-        document.getElementById('soil_mgo').value = data.soil.mgo || '';
-        document.getElementById('soil_k2o').value = data.soil.k2o || '';
-        document.getElementById('soil_p2o5').value = data.soil.p2o5 || '';
-        document.getElementById('soil_cec').value = data.soil.cec || '';
-        document.getElementById('soil_base_sat').value = data.soil.base_sat || '';
-        document.getElementById('soil_cao_mgo_ratio').value = data.soil.cao_mgo_ratio || '';
-        document.getElementById('soil_mgo_k2o_ratio').value = data.soil.mgo_k2o_ratio || '';
-        document.getElementById('soil_no3n').value = data.soil.no3n || '';
+        updateCompostVisibility();
+        updateConversionPreview();
 
         if (data.area) {
             document.getElementById('areaValue').value = data.area.value || '';
@@ -695,6 +729,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         specialNotesInput.value = (data.specialNotes || '').slice(0, SPECIAL_NOTES_MAX_LENGTH);
         updateSpecialNotesCounter();
+        return data.cropId && !cropSelect.value;
     }
 
     function saveParametersToFile() {
@@ -702,7 +737,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const defaultName = `施肥パラメータ_${data.cropName || '未選択'}_${todayStamp()}`;
         let filename = prompt('保存するファイル名を入力してください（拡張子 .json は自動で付きます）', defaultName);
         if (filename === null) return;
-        filename = sanitizeFilename(filename) || defaultName;
+        filename = sanitizeFilename(filename) || sanitizeFilename(defaultName);
         if (!filename.toLowerCase().endsWith('.json')) filename += '.json';
 
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -731,14 +766,17 @@ document.addEventListener('DOMContentLoaded', () => {
         reader.onload = (evt) => {
             try {
                 const data = JSON.parse(evt.target.result);
-                applyParameterData(data);
+                const cropMissing = applyParameterData(data);
                 // 復元した内容はまだ計算に反映されていないため、②・③のタブを再度ロックし①からやり直してもらう
                 lastCalc = null;
                 lastFertCalc = null;
                 lockStepTab(2);
                 lockStepTab(3);
+                document.getElementById('staleNotice').style.display = 'none';
                 showStep(1);
-                alert(`「${file.name}」からパラメータを復元しました。内容を確認のうえ、①から「🌾 施肥計算をする」を押して再計算してください。`);
+                alert(`「${file.name}」からパラメータを復元しました。` +
+                    (cropMissing ? '保存時の作物は現在の作物一覧にないため、作物を選び直してください。' : '') +
+                    '内容を確認のうえ、①から「🌾 施肥計算をする」を押して再計算してください。');
             } catch (err) {
                 alert('ファイルの読み込みに失敗しました。正しい形式の.jsonファイルか確認してください。');
             } finally {
@@ -753,197 +791,215 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ---------- カードHTML生成 ----------
-    function buildNpkCard(key, label, sub, target, residual, deficit) {
-        const pct = target > 0 ? Math.min(100, (residual / target) * 100) : 0;
-        const sufficient = deficit <= 0;
+    // 設計量カード。N・P・K：基準 − 土壌 − 堆肥 = 設計量。石灰・苦土：適正範囲の下限までの不足量。
+    function buildDesignCard(def, item, scale) {
+        const isBase = def.key === 'cao' || def.key === 'mgo';
+        let pct, lines, status;
+        if (isBase) {
+            const range = item.range;
+            const measured = item.measured;
+            pct = range && isFinite(measured) ? Math.min(100, (measured / range[0]) * 100) : 0;
+            lines = [
+                `<span>適正 <strong>${range ? `${range[0]}〜${range[1]}` : '-'}</strong>mg</span>`,
+                `<span>現状 <strong>${isFinite(measured) ? measured : '-'}</strong>mg</span>`
+            ];
+            if (!range) status = 'CECが不明のため算出できません';
+            else if (!isFinite(measured)) status = '分析値が未入力のため算出していません';
+            else if (item.design <= 0) status = measured > range[1] ? '⚠️ 適正範囲の上限を超えています' : '✅ 適正範囲内です';
+            else status = `🌾 下限までの不足：${(item.design * scale).toFixed(1)} kg`;
+        } else {
+            const credit = item.soilCredit + item.compostCredit;
+            pct = item.standard > 0 ? Math.max(0, Math.min(100, (credit / item.standard) * 100)) : 0;
+            const soilText = item.soilCredit >= 0 ? `−${(item.soilCredit * scale).toFixed(1)}` : `＋${(-item.soilCredit * scale).toFixed(1)}`;
+            lines = [
+                `<span>基準 <strong>${(item.standard * scale).toFixed(1)}</strong>kg</span>`,
+                `<span>土壌 <strong>${soilText}</strong></span>`,
+                `<span>堆肥 <strong>−${(item.compostCredit * scale).toFixed(1)}</strong></span>`
+            ];
+            status = item.standard <= 0 && item.soilCredit >= 0
+                ? '基肥の施用基準がありません（0kg）'
+                : `🌾 設計量：${(item.design * scale).toFixed(1)} kg`;
+            if (item.overSupplied > 0) status += `<br>⚠️ 土壌・堆肥からの供給が ${(item.overSupplied * scale).toFixed(1)}kg 上回っています`;
+        }
         return `
-            <div class="npk-card npk-${key}">
+            <div class="npk-card npk-${def.key}">
                 <div class="npk-card-head">
-                    <span class="icon-circle">${ICONS[key]}</span>
+                    <span class="icon-circle">${ICONS[def.key]}</span>
                     <div>
-                        <div class="npk-title">${label}</div>
-                        <div class="npk-sub">${sub}</div>
+                        <div class="npk-title">${def.label}</div>
+                        <div class="npk-sub">${def.sub}</div>
                     </div>
                 </div>
                 <div class="npk-bar-track">
                     <div class="npk-bar-fill" style="width:${pct}%;"></div>
                 </div>
-                <div class="npk-numbers">
-                    <span>目標 <strong>${target.toFixed(1)}</strong>kg</span>
-                    <span>残存 <strong>${residual.toFixed(1)}</strong>kg</span>
-                </div>
-                <div class="npk-deficit-line">${sufficient ? '✅ 目標量に到達しています' : `🌾 不足量：${deficit.toFixed(1)} kg`}</div>
+                <div class="npk-numbers npk-numbers-wrap">${lines.join('')}</div>
+                <div class="npk-deficit-line">${status}</div>
             </div>
         `;
     }
 
-    function buildFinalNpkCard(key, label, sub, target, deficit, applied) {
+    function buildFinalNpkCard(def, need, applied) {
+        const deficit = isFinite(need) ? need : 0;
         const pct = deficit > 0 ? Math.min(100, (applied / deficit) * 100) : 100;
         let statusLine;
         if (deficit <= 0) {
-            statusLine = `✅ もともと目標量に達しています（今回投入 +${applied.toFixed(1)}kg）`;
+            statusLine = applied > 0
+                ? `⚠️ 設計量は0kgですが、${applied.toFixed(1)}kg 投入しています`
+                : '✅ 施用の必要はありません';
         } else {
             const remaining = Math.max(0, deficit - applied);
             statusLine = remaining <= 0
-                ? `✅ 不足分をカバーしています（余裕 +${(applied - deficit).toFixed(1)}kg）`
+                ? `✅ 設計量を満たしています（超過 +${(applied - deficit).toFixed(1)}kg）`
                 : `⚠️ まだ ${remaining.toFixed(1)} kg 不足しています`;
         }
         return `
-            <div class="npk-card npk-${key}">
+            <div class="npk-card npk-${def.key}">
                 <div class="npk-card-head">
-                    <span class="icon-circle">${ICONS[key]}</span>
+                    <span class="icon-circle">${ICONS[def.key]}</span>
                     <div>
-                        <div class="npk-title">${label}</div>
-                        <div class="npk-sub">${sub}</div>
+                        <div class="npk-title">${def.label}</div>
+                        <div class="npk-sub">${def.sub}</div>
                     </div>
                 </div>
                 <div class="npk-bar-track">
                     <div class="npk-bar-fill" style="width:${pct}%;"></div>
                 </div>
                 <div class="npk-numbers">
-                    <span>目標 <strong>${target.toFixed(1)}</strong>kg</span>
-                    <span>不足 <strong>${deficit.toFixed(1)}</strong>kg</span>
-                </div>
-                <div class="npk-numbers">
-                    <span>今回投入量 <strong>${applied.toFixed(1)}</strong>kg</span>
+                    <span>設計量 <strong>${deficit.toFixed(1)}</strong>kg</span>
+                    <span>投入量 <strong>${applied.toFixed(1)}</strong>kg</span>
                 </div>
                 <div class="npk-deficit-line">${statusLine}</div>
             </div>
         `;
     }
 
-    // 石灰・苦土 資材の選び方アドバイス（石灰/苦土比ベース）
-    function buildMaterialAdvice(caoMgoRatio) {
-        if (isNaN(caoMgoRatio)) {
-            return '石灰/苦土比(9)を入力すると、苦土石灰と炭酸カルシウムのどちらが適しているかをアドバイスします。';
-        }
-        if (caoMgoRatio > 8) {
-            return `石灰/苦土比 ${caoMgoRatio.toFixed(1)} — 石灰に対して苦土（マグネシウム）が相対的に不足気味です。苦土石灰（ドロマイト）での補給がおすすめです。`;
-        }
-        if (caoMgoRatio < 3) {
-            return `石灰/苦土比 ${caoMgoRatio.toFixed(1)} — 苦土に対して石灰が少なめです。炭酸カルシウムなど苦土を含まない石灰質資材が適しています。`;
-        }
-        return `石灰/苦土比 ${caoMgoRatio.toFixed(1)} — バランス良好です。通常の苦土石灰で問題ありません。`;
+    // ---------- アドバイス文 ----------
+    function buildConversionText(result, field) {
+        const cecText = result.cecSource === 'measured' ? `分析値 ${result.cec}`
+            : result.cecSource === 'soilType' ? `${result.cec}（土壌タイプの代表値。県基準 表5）`
+            : '不明（CECを入力してください）';
+        return `${field.soilType.name}、作土深 ${field.depth}cm、仮比重 ${field.bd} → 1 mg/100g ＝ ${result.factor.toFixed(2)} kg/10a。CEC：${cecText}` +
+            (result.row ? `。適正塩基は県基準 表8のCEC ${result.row.cec}me の行を使用。` : '。');
     }
 
-    // 堆肥のめやすテキスト（面積に応じて実施用量も併記）
-    function buildCompostText(crop, scale) {
-        const range = compostRanges[crop.category] || compostRanges.leafy;
-        const totalMin = (range.min * scale).toFixed(1);
-        const totalMax = (range.max * scale).toFixed(1);
-        return `【${categoryLabel[crop.category] || ''}】完熟堆肥 ${range.min}〜${range.max} t/10a が目安です（今回の面積では 約${totalMin}〜${totalMax} t）。${range.note}`;
-    }
-
-    // ---------- 土壌分析結果の過不足バッジ ----------
-    // pH・EC・CEC・塩基飽和度・石灰/苦土比・苦土/加里比など、kg換算の意味を持たない項目用：
-    // 目安値との差を%のみで表示する（適正範囲内なら「✓ 適正」）。
-    function buildDeviationBadge(measured, target) {
-        if (isNaN(measured) || isNaN(target) || target === 0) return '';
-        const diffPct = ((measured - target) / target) * 100;
-        if (Math.abs(diffPct) < SOIL_BADGE_TOLERANCE_PCT) {
-            return '<span class="soil-badge soil-badge-ok">✓ 適正</span>';
+    function buildNitrogenAdviceText(nr, factor, ec) {
+        if (nr.source === 'none') {
+            return '硝酸態窒素・ECとも未入力のため、土壌の残存窒素は差し引いていません（基準量のまま）。';
         }
-        return diffPct < 0
-            ? `<span class="soil-badge soil-badge-low">↓${Math.abs(diffPct).toFixed(0)}%</span>`
-            : `<span class="soil-badge soil-badge-high">↑${diffPct.toFixed(0)}%</span>`;
+        const how = nr.source === 'measured'
+            ? `硝酸態窒素の分析値 ${nr.no3.toFixed(1)} mg/100g`
+            : `EC ${ec.toFixed(2)} mS/cm から${nr.eq.label}の式（${nr.eq.a}×EC${nr.eq.b}）で推定した硝酸態窒素 ${nr.no3.toFixed(1)} mg/100g`;
+        const nh4 = nr.nh4 > 0 ? `＋アンモニア態窒素 ${nr.nh4.toFixed(1)}` : '';
+        return `${how}${nh4} → 無機態窒素 ${nr.inorganic.toFixed(1)} mg/100g。3mgを超える分を肥料として数え、(${nr.inorganic.toFixed(1)}−3)×${factor.toFixed(2)} ＝ ${nr.kg.toFixed(1)} kg/10a を差し引きます（県基準 技術編p.12）。`
+            + (nr.source === 'ec' ? ' ※ECからの推定は誤差が大きいため、硝酸態窒素の実測を推奨します。' : '');
     }
 
-    // N・P2O5・K2O・CaO・MgOなど、すでに目標・残存(kg/10a換算後)が計算済みの養分用：
-    // %と合わせて不足・過剰のkgも表示する。nutrientScaled = { target, residual, deficit }（面積換算済み）
-    function buildNutrientBadge(nutrientScaled) {
-        if (!nutrientScaled || nutrientScaled.target <= 0) return '';
-        const diffPct = ((nutrientScaled.residual - nutrientScaled.target) / nutrientScaled.target) * 100;
-        const diffKg = nutrientScaled.residual - nutrientScaled.target;
-        if (Math.abs(diffPct) < SOIL_BADGE_TOLERANCE_PCT) {
-            return '<span class="soil-badge soil-badge-ok">✓ 適正</span>';
-        }
-        return diffPct < 0
-            ? `<span class="soil-badge soil-badge-low">↓${Math.abs(diffPct).toFixed(0)}%(${Math.abs(diffKg).toFixed(1)}kg)</span>`
-            : `<span class="soil-badge soil-badge-high">↑${diffPct.toFixed(0)}%(${diffKg.toFixed(1)}kg)</span>`;
-    }
-
-    // 残存窒素量を算出する。
-    // (11)推定硝酸態窒素の入力があればそれを優先し、未入力の場合のみ電気伝導度(EC)から推定する。
-    function estimateResidualNitrogen(no3nInput, ecInput) {
-        const hasNo3n = !isNaN(no3nInput) && no3nInput >= 0;
-
-        if (hasNo3n) {
-            const no3n_mg100g = no3nInput;
-            const residualN = no3n_mg100g * MG100G_TO_KG10A;
-            return { source: 'measured', no3n_mg100g, residualN, ec: null, usedDefaultEc: false };
-        }
-
-        const usedDefaultEc = isNaN(ecInput) || ecInput <= 0;
-        const ec = usedDefaultEc ? DEFAULT_EC : ecInput;
-        const no3n_mg100g = ec * EC_TO_NO3N_MG100G;
-        const residualN = no3n_mg100g * MG100G_TO_KG10A;
-        return { source: 'ec', no3n_mg100g, residualN, ec, usedDefaultEc };
-    }
-
-    // 窒素残存量の算定方法アドバイス文
-    function buildNitrogenAdviceText(nEstimate) {
-        let methodText;
-        if (nEstimate.source === 'measured') {
-            methodText = `(11)推定硝酸態窒素の入力値 ${nEstimate.no3n_mg100g.toFixed(1)} mg/100g を使用しています`;
-        } else if (nEstimate.usedDefaultEc) {
-            methodText = `(11)推定硝酸態窒素・ECともに未入力のため、仮の値(EC=${DEFAULT_EC.toFixed(2)} mS/cm)で推定しています`;
+    function buildCompostText(crop, compostInput, supply, scale) {
+        let rec;
+        if (crop.compost) {
+            const r = crop.compost;
+            const t = r.min === r.max ? `${r.min}` : `${r.min}〜${r.max}`;
+            rec = `${crop.source === 'saitama' ? '県基準' : '参考値'}では良質な堆肥 ${t} t/10a（今回の面積で約${(r.min * scale).toFixed(1)}${r.min === r.max ? '' : `〜${(r.max * scale).toFixed(1)}`} t）。`;
+        } else if (crop.ecClass === 'paddy') {
+            rec = '水稲は、家畜ふん堆肥(水分50%)を乾田で牛ふん・豚ぷん0.5t/10a、鶏ふん0.4t/10a程度、半湿田で0.2t/10a程度が目安です（県基準 技術編 表19）。';
         } else {
-            methodText = `(11)推定硝酸態窒素が未入力のため、入力されたEC ${nEstimate.ec.toFixed(2)} mS/cm から推定しています`;
+            rec = '堆肥の目安量は設定されていません。';
         }
-        return `${methodText}。推定硝酸態窒素 約${nEstimate.no3n_mg100g.toFixed(1)} mg/100g → 残存窒素 約${nEstimate.residualN.toFixed(1)} kg/10a として計算に使用します。`;
+        if (!compostInput || !(compostInput.tons > 0)) {
+            return rec + ' 家畜ふん堆肥を使う場合は①で種類と量を入力すると、有効成分を基肥から差し引きます。';
+        }
+        return rec + ` 入力：${compostInput.name} ${compostInput.tons} t/10a → 有効成分 N ${supply.n.toFixed(1)}・P2O5 ${supply.p.toFixed(1)}・K2O ${supply.k.toFixed(1)} kg/10a を基肥から差し引きました（肥効率は県基準 表17）。`;
     }
 
-    // 作物・土壌値から5養分（N/P/K/CaO/MgO）の目標・残存・不足（10aあたり）を算出
-    function calcBaseNutrients(crop, soil) {
-        const nEstimate = estimateResidualNitrogen(soil.no3n, soil.ec);
-
-        const targetN = crop.nutrient_absorption_kg_10a.n * crop.standard_basal_ratio.n;
-        const targetP = crop.nutrient_absorption_kg_10a.p2o5 * crop.standard_basal_ratio.p2o5;
-        const targetK = crop.nutrient_absorption_kg_10a.k2o * crop.standard_basal_ratio.k2o;
-        const targetCaO = TARGET_CAO_MG100G * MG100G_TO_KG10A;
-        const targetMgO = TARGET_MGO_MG100G * MG100G_TO_KG10A;
-
-        const residualN = nEstimate.residualN;
-        const residualP = soil.p2o5 * MG100G_TO_KG10A;
-        const residualK = soil.k2o * MG100G_TO_KG10A;
-        const residualCaO = soil.cao * MG100G_TO_KG10A;
-        const residualMgO = soil.mgo * MG100G_TO_KG10A;
-
-        return {
-            nEstimate,
-            n:   { target: targetN,   residual: residualN,   deficit: Math.max(0, targetN - residualN) },
-            p:   { target: targetP,   residual: residualP,   deficit: Math.max(0, targetP - residualP) },
-            k:   { target: targetK,   residual: residualK,   deficit: Math.max(0, targetK - residualK) },
-            cao: { target: targetCaO, residual: residualCaO, deficit: Math.max(0, targetCaO - residualCaO) },
-            mgo: { target: targetMgO, residual: residualMgO, deficit: Math.max(0, targetMgO - residualMgO) }
-        };
+    function buildLimeAdviceText(result, soil, scale) {
+        const row = result.row;
+        if (!row) return 'CECが不明なため、石灰・苦土の適正範囲（県基準 表8）を判定できません。CECを入力するか土壌タイプを選んでください。';
+        if (!isFinite(soil.cao) || !isFinite(soil.mgo)) return '石灰(CaO)・苦土(MgO)の分析値を入力すると、県基準 表8の適正範囲と比べて補正量を計算します。';
+        const lowCa = result.cao.design > 0;
+        const lowMg = result.mgo.design > 0;
+        const areaNote = (kgs) => (scale !== 1 ? `（今回の面積では ${kgs.map(v => (v * scale).toFixed(1)).join('・')}kg）` : '');
+        const msgs = [];
+        if (lowCa && lowMg) msgs.push(`石灰・苦土とも下限未満です。苦土を含む石灰資材で補正し、CaO ${result.cao.design.toFixed(1)}kg・MgO ${result.mgo.design.toFixed(1)}kg/10a${areaNote([result.cao.design, result.mgo.design])} を目安にしてください。`);
+        else if (lowCa) msgs.push(`石灰のみ下限未満です。苦土を含まない石灰資材で CaO ${result.cao.design.toFixed(1)}kg/10a${areaNote([result.cao.design])}（炭酸カルシウム CaO${LIME_CAO_PCT}%なら10aあたり約${(result.cao.design * 100 / LIME_CAO_PCT).toFixed(0)}kg）を目安にしてください。`);
+        else if (lowMg) msgs.push(`苦土のみ下限未満です。苦土資材で MgO ${result.mgo.design.toFixed(1)}kg/10a${areaNote([result.mgo.design])} を目安にしてください。`);
+        else msgs.push('石灰・苦土とも適正範囲の下限以上です。');
+        const b = result.balance;
+        const caMg = isFinite(soil.cao_mgo_ratio) ? soil.cao_mgo_ratio : b.caMg;
+        const mgK = isFinite(soil.mgo_k2o_ratio) ? soil.mgo_k2o_ratio : b.mgK;
+        if (isFinite(caMg) && caMg > row.caMg[1]) msgs.push(`石灰/苦土比(当量) ${caMg.toFixed(2)} が上限${row.caMg[1]}を超え、苦土が相対的に不足しています。`);
+        if (isFinite(mgK) && mgK < row.mgK[0]) msgs.push(`苦土/加里比(当量) ${mgK.toFixed(2)} が下限${row.mgK[0]}未満で、加里に対して苦土が不足しています。`);
+        const bs = isFinite(soil.base_sat) ? soil.base_sat : b.baseSat;
+        if (isFinite(bs) && bs > row.baseSat[1]) msgs.push(`塩基飽和度 ${bs.toFixed(0)}% が上限${row.baseSat[1]}%を超えています。石灰質資材の施用は控えてください。`);
+        if (isFinite(soil.ph) && soil.ph > DATA.diagnosisStandard.ph[1]) msgs.push(`pH ${soil.ph} が適正範囲(6.0〜6.5)を超えています。アルカリ分を含む資材はpHをさらに上げる点に注意してください。`);
+        return msgs.join(' ');
     }
 
-    function scaleNutrients(base, scale) {
-        const out = {};
-        NUTRIENT_DEFS.forEach(def => {
-            const b = base[def.key];
-            out[def.key] = {
-                target: b.target * scale,
-                residual: b.residual * scale,
-                deficit: Math.max(0, b.target * scale - b.residual * scale)
-            };
+    // ---------- 土壌分析結果の適正範囲バッジ ----------
+    function buildRangeBadge(value, range, unit) {
+        const state = Calc.compareRange(value, range);
+        if (!state) return '';
+        if (state === 'ok') return '<span class="soil-badge soil-badge-ok">✓ 適正</span>';
+        if (state === 'low') return `<span class="soil-badge soil-badge-low">↓ 下限${range[0]}まで ${(range[0] - value).toFixed(unit === 'ratio' || unit === 'ec' ? 2 : 1)}</span>`;
+        return `<span class="soil-badge soil-badge-high">↑ 上限${range[1]}を ${(value - range[1]).toFixed(unit === 'ratio' || unit === 'ec' ? 2 : 1)} 超過</span>`;
+    }
+
+    function rangeText(range, unit) {
+        if (!range) return '';
+        const f = (v) => (unit === 'ph' ? v.toFixed(1) : String(v));
+        if (range[1] === Infinity) return `（適正 ${f(range[0])}以上）`;
+        if (range[0] === 0) return `（適正 ${f(range[1])}以下）`;
+        return `（適正 ${f(range[0])}〜${f(range[1])}）`;
+    }
+
+    function renderDesignGrid(containerId, result, scale) {
+        document.getElementById(containerId).innerHTML = NUTRIENT_DEFS.map(def => buildDesignCard(def, result[def.key], scale)).join('');
+    }
+
+    // 8種類の肥料入力欄を読み取り、使用量・袋数・供給養分を計算する
+    function readFertilizerRows() {
+        const rows = [];
+        for (let i = 1; i <= FERT_COUNT; i++) {
+            const name = document.getElementById(`fert_name_${i}`).value.trim();
+            const pct = (f) => parseFloat(document.getElementById(`fert_${f}_${i}`).value) || 0;
+            const bagWeight = pct('bagweight');
+            const amount = pct('amount');
+
+            if (!name && amount <= 0) continue; // 未入力の行はスキップ
+
+            rows.push({
+                name: name || `肥料${i}`,
+                amount,
+                bagWeight,
+                bags: bagWeight > 0 ? Math.ceil(amount / bagWeight) : null,
+                suppliedN: amount * (pct('n') / 100),
+                suppliedP: amount * (pct('p') / 100),
+                suppliedK: amount * (pct('k') / 100),
+                suppliedCaO: amount * (pct('cao') / 100),
+                suppliedMgO: amount * (pct('mgo') / 100)
+            });
+        }
+        return rows;
+    }
+
+    function sumFertilizerRows(rows) {
+        const totals = { amount: 0, n: 0, p: 0, k: 0, cao: 0, mgo: 0 };
+        rows.forEach(r => {
+            totals.amount += r.amount;
+            totals.n += r.suppliedN;
+            totals.p += r.suppliedP;
+            totals.k += r.suppliedK;
+            totals.cao += r.suppliedCaO;
+            totals.mgo += r.suppliedMgO;
         });
-        return out;
-    }
-
-    function renderNpkGrid(containerId, scaled) {
-        const html = NUTRIENT_DEFS.map(def =>
-            buildNpkCard(def.key, def.label, def.sub, scaled[def.key].target, scaled[def.key].residual, scaled[def.key].deficit)
-        ).join('');
-        document.getElementById(containerId).innerHTML = html;
+        return totals;
     }
 
     // 肥料テーブルHTMLを生成（袋数計算結果 / 最終報告書で共用）
     function buildFertTableHTML(rows, totals) {
         const bodyRows = rows.map(r => `
             <tr>
-                <td class="fert-name-cell">${r.name}</td>
+                <td class="fert-name-cell">${escapeHtml(r.name)}</td>
                 <td>${r.amount.toFixed(1)}</td>
                 <td>${r.bags === null ? '—' : `${r.bags} 袋`}</td>
                 <td>${r.suppliedN.toFixed(1)}</td>
@@ -985,52 +1041,11 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
     }
 
-    // 8種類の肥料入力欄を読み取り、使用量・袋数・供給養分を計算する
-    function readFertilizerRows() {
-        const rows = [];
-        for (let i = 1; i <= FERT_COUNT; i++) {
-            const name = document.getElementById(`fert_name_${i}`).value.trim();
-            const n = parseFloat(document.getElementById(`fert_n_${i}`).value) || 0;
-            const p = parseFloat(document.getElementById(`fert_p_${i}`).value) || 0;
-            const k = parseFloat(document.getElementById(`fert_k_${i}`).value) || 0;
-            const cao = parseFloat(document.getElementById(`fert_cao_${i}`).value) || 0;
-            const mgo = parseFloat(document.getElementById(`fert_mgo_${i}`).value) || 0;
-            const bagWeight = parseFloat(document.getElementById(`fert_bagweight_${i}`).value) || 0;
-            const amount = parseFloat(document.getElementById(`fert_amount_${i}`).value) || 0;
-
-            if (!name && amount <= 0) continue; // 未入力の行はスキップ
-
-            rows.push({
-                name: name || `肥料${i}`,
-                amount,
-                bagWeight,
-                bags: bagWeight > 0 ? Math.ceil(amount / bagWeight) : null,
-                suppliedN: amount * (n / 100),
-                suppliedP: amount * (p / 100),
-                suppliedK: amount * (k / 100),
-                suppliedCaO: amount * (cao / 100),
-                suppliedMgO: amount * (mgo / 100)
-            });
-        }
-        return rows;
+    function readSoil() {
+        const soil = {};
+        SOIL_FIELDS.forEach(f => { soil[f] = readNum(`soil_${f}`); });
+        return soil;
     }
-
-    function sumFertilizerRows(rows) {
-        const totals = { amount: 0, n: 0, p: 0, k: 0, cao: 0, mgo: 0 };
-        rows.forEach(r => {
-            totals.amount += r.amount;
-            totals.n += r.suppliedN;
-            totals.p += r.suppliedP;
-            totals.k += r.suppliedK;
-            totals.cao += r.suppliedCaO;
-            totals.mgo += r.suppliedMgO;
-        });
-        return totals;
-    }
-
-    // ---------- 状態保持 ----------
-    let lastCalc = null;      // (1)→(2) 施肥計算をする、時点の情報
-    let lastFertCalc = null;  // (2) 投入量を計算する、時点の情報
 
     // ---------- (1) 施肥計算をする ----------
     document.getElementById('calcBtn').addEventListener('click', () => {
@@ -1041,174 +1056,168 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         const crop = getSelectedCrop();
         if (cropId === CUSTOM_CROP_VALUE) {
-            const { n, p2o5, k2o } = crop.nutrient_absorption_kg_10a;
-            if (n <= 0 && p2o5 <= 0 && k2o <= 0) {
-                alert('目標N・目標P2O5・目標K2Oのいずれかを入力してください。');
+            const { n, p, k } = crop.basal;
+            if (n <= 0 && p <= 0 && k <= 0) {
+                alert('基肥N・基肥P2O5・基肥K2Oのいずれかを入力してください。');
                 return;
             }
         }
 
-        const soil = {
-            ph: parseFloat(document.getElementById('soil_ph').value),
-            ec: parseFloat(document.getElementById('soil_ec').value),
-            cao: parseFloat(document.getElementById('soil_cao').value) || 0,
-            mgo: parseFloat(document.getElementById('soil_mgo').value) || 0,
-            k2o: parseFloat(document.getElementById('soil_k2o').value) || 0,
-            p2o5: parseFloat(document.getElementById('soil_p2o5').value) || 0,
-            cec: parseFloat(document.getElementById('soil_cec').value),
-            base_sat: parseFloat(document.getElementById('soil_base_sat').value),
-            cao_mgo_ratio: parseFloat(document.getElementById('soil_cao_mgo_ratio').value),
-            mgo_k2o_ratio: parseFloat(document.getElementById('soil_mgo_k2o_ratio').value),
-            no3n: parseFloat(document.getElementById('soil_no3n').value)
-        };
+        const soil = readSoil();
+        const field = { soilType: getSoilType(), depth: getDepth(), bd: getBd() };
+        const compostInput = getCompostInput();
+        const result = Calc.design(crop, soil, field, compostInput);
+        const ranges = Calc.diagnosisRanges(crop, field.soilType, result.row);
 
-        const soilSnapshot = {
-            ph: document.getElementById('soil_ph').value || '-',
-            ec: document.getElementById('soil_ec').value || '-',
-            cao: document.getElementById('soil_cao').value || '-',
-            mgo: document.getElementById('soil_mgo').value || '-',
-            k2o: document.getElementById('soil_k2o').value || '-',
-            p2o5: document.getElementById('soil_p2o5').value || '-',
-            cec: document.getElementById('soil_cec').value || '-',
-            base_sat: document.getElementById('soil_base_sat').value || '-',
-            cao_mgo_ratio: document.getElementById('soil_cao_mgo_ratio').value || '-',
-            mgo_k2o_ratio: document.getElementById('soil_mgo_k2o_ratio').value || '-',
-            no3n: document.getElementById('soil_no3n').value || '-'
-        };
-
-        const base = calcBaseNutrients(crop, soil);
-        const areaM2 = getAreaM2();
-        const scale = areaM2 / AREA_DEFAULT_M2;
-        const scaled = scaleNutrients(base, scale);
-
-        // 作物バッジの更新
         document.getElementById('resultCropEmoji').textContent = crop.emoji;
-        document.getElementById('resultCropName').textContent = crop.name;
+        document.getElementById('resultCropName').textContent = cropLabel(crop);
 
-        // 目標値・残存量・不足量カード
-        renderNpkGrid('npkGrid', scaled);
+        const scale = getAreaM2() / AREA_DEFAULT_M2;
+        renderDesignGrid('npkGrid', result, scale);
 
-        // 窒素算定・堆肥・石灰苦土資材アドバイス
-        document.getElementById('nitrogenAdviceText').textContent = buildNitrogenAdviceText(base.nEstimate);
-        document.getElementById('compostAdviceText').textContent = buildCompostText(crop, scale);
-        document.getElementById('limeAdviceText').textContent = buildMaterialAdvice(soil.cao_mgo_ratio);
+        document.getElementById('conversionAdviceText').textContent = buildConversionText(result, field);
+        document.getElementById('nitrogenAdviceText').textContent = buildNitrogenAdviceText(result.nitrogen, result.factor, soil.ec);
+        document.getElementById('compostAdviceText').textContent = buildCompostText(crop, compostInput, result.compost, scale);
+        document.getElementById('limeAdviceText').textContent = buildLimeAdviceText(result, soil, scale);
 
-        lastCalc = { crop, soil, soilSnapshot, base };
+        lastCalc = { crop, soil, field, compostInput, result, ranges };
         lastFertCalc = null;
 
         document.getElementById('fertResultArea').style.display = 'none';
+        document.getElementById('staleNotice').style.display = 'none';
         unlockStepTab(2);
+        lockStepTab(3);
         showStep(2);
     });
 
     // ---------- (2) 投入量を計算する ----------
-    document.getElementById('recalcBtn').addEventListener('click', () => {
-        if (!lastCalc) {
-            alert('先に「施肥計算をする」を実行してください。');
-            return;
-        }
-
-        // 面積に応じて目標・残存・不足を再計算し、上部カードを更新
+    function computeFertilizer() {
         const areaM2 = getAreaM2();
         const scale = areaM2 / AREA_DEFAULT_M2;
-        const scaled = scaleNutrients(lastCalc.base, scale);
-        renderNpkGrid('npkGrid', scaled);
-        document.getElementById('compostAdviceText').textContent = buildCompostText(lastCalc.crop, scale);
+        const { result } = lastCalc;
+        renderDesignGrid('npkGrid', result, scale);
+        document.getElementById('compostAdviceText').textContent =
+            buildCompostText(lastCalc.crop, lastCalc.compostInput, result.compost, scale);
+        document.getElementById('limeAdviceText').textContent = buildLimeAdviceText(result, lastCalc.soil, scale);
 
-        // 肥料入力欄を読み取り
         const rows = readFertilizerRows();
-        if (rows.length === 0) {
+        const totals = sumFertilizerRows(rows);
+        const need = {};
+        NUTRIENT_DEFS.forEach(def => { need[def.key] = (result[def.key].design || 0) * scale; });
+        lastFertCalc = { areaM2, scale, rows, totals, need };
+        return lastFertCalc;
+    }
+
+    function renderFertResult(fc, gridId, tableId) {
+        document.getElementById(tableId).innerHTML = buildFertTableHTML(fc.rows, fc.totals);
+        document.getElementById(gridId).innerHTML = NUTRIENT_DEFS.map(def =>
+            buildFinalNpkCard(def, fc.need[def.key], fc.totals[def.key])
+        ).join('');
+    }
+
+    document.getElementById('recalcBtn').addEventListener('click', () => {
+        if (!lastCalc) {
+            alert('先に①で「施肥計算をする」を実行してください。');
+            return;
+        }
+        const fc = computeFertilizer();
+        if (fc.rows.length === 0) {
             alert('少なくとも1つの肥料の「肥料名」または「今回投入量」を入力してください。');
             return;
         }
-        const totals = sumFertilizerRows(rows);
-
-        // 肥料ごとの使用量・袋数テーブル
-        document.getElementById('fertResultTable').innerHTML = buildFertTableHTML(rows, totals);
-
-        // 目標・投入・過不足カード
-        const finalHtml = NUTRIENT_DEFS.map(def =>
-            buildFinalNpkCard(def.key, def.label, def.sub, scaled[def.key].target, scaled[def.key].deficit, totals[def.key])
-        ).join('');
-        document.getElementById('finalNpkGrid').innerHTML = finalHtml;
+        renderFertResult(fc, 'finalNpkGrid', 'fertResultTable');
         document.getElementById('fertResultArea').style.display = 'block';
-
-        lastFertCalc = { areaM2, scale, scaled, rows, totals };
-
         document.getElementById('fertResultArea').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     });
 
     // ---------- (2)→(3) 施肥設計完了 ----------
     document.getElementById('completeBtn').addEventListener('click', () => {
-        if (!lastCalc || !lastFertCalc) {
-            alert('先に「投入量を計算する」を実行してください。');
+        if (!lastCalc) {
+            alert('先に①で「施肥計算をする」を実行してください。');
             return;
         }
+        // 最新の入力で投入量を計算し直してから設計書を作る
+        const fc = computeFertilizer();
+        if (fc.rows.length === 0) {
+            alert('少なくとも1つの肥料の「肥料名」または「今回投入量」を入力し、「投入量を計算する」で確認してください。');
+            return;
+        }
+        renderFertResult(fc, 'finalNpkGrid', 'fertResultTable');
+        document.getElementById('fertResultArea').style.display = 'block';
 
-        const crop = lastCalc.crop;
-        const { areaM2, scale, scaled, rows, totals } = lastFertCalc;
+        const { crop, soil, field, compostInput, result, ranges } = lastCalc;
+        const { areaM2, scale } = fc;
         const a = areaM2 / 100;
         const ha = areaM2 / 10000;
         const fieldName = document.getElementById('fieldName').value.trim();
 
         // バッジ・タイトル（作成日は栽培作物名の右側に表示し、PNG/PDF出力にも含まれる）
         document.getElementById('reportCropEmoji').textContent = crop.emoji;
-        document.getElementById('reportCropName').textContent = fieldName ? `${crop.name}（${fieldName}）` : crop.name;
+        document.getElementById('reportCropName').textContent = fieldName ? `${cropLabel(crop)}（${fieldName}）` : cropLabel(crop);
         document.getElementById('captureCropEmoji').textContent = crop.emoji;
-        document.getElementById('captureCropName').textContent = `${crop.emoji} ${crop.name}`;
+        document.getElementById('captureCropName').textContent = `${crop.emoji} ${cropLabel(crop)}`;
         document.getElementById('captureDateBadge').textContent = `作成日: ${todayStamp()}`;
         document.getElementById('captureAreaCaption').textContent =
             (fieldName ? `圃場名：${fieldName} ／ ` : '') +
             `面積：${areaM2.toLocaleString('ja-JP', { maximumFractionDigits: 1 })} ㎡（${a.toFixed(2)} a ／ ${ha.toFixed(3)} ha）`;
 
-        // 土壌分析結果サマリー（各項目の右側に目安値との過不足バッジを表示）
-        const targetPh = crop.targetPh || DEFAULT_TARGET_PH;
-        const soilLabels = [
-            { key: 'ph', label: 'pH (H2O)', badge: buildDeviationBadge(lastCalc.soil.ph, targetPh) },
-            { key: 'ec', label: 'EC (mS/cm)', badge: buildDeviationBadge(lastCalc.soil.ec, SOIL_ITEM_REFERENCE.ec) },
-            { key: 'cao', label: '石灰 CaO (mg/100g)', badge: buildNutrientBadge(scaled.cao) },
-            { key: 'mgo', label: '苦土 MgO (mg/100g)', badge: buildNutrientBadge(scaled.mgo) },
-            { key: 'k2o', label: '加里 K2O (mg/100g)', badge: buildNutrientBadge(scaled.k) },
-            { key: 'p2o5', label: 'トルオーグ燐酸 (mg/100g)', badge: buildNutrientBadge(scaled.p) },
-            { key: 'cec', label: 'CEC (me)', badge: buildDeviationBadge(lastCalc.soil.cec, SOIL_ITEM_REFERENCE.cec) },
-            { key: 'base_sat', label: '塩基飽和度 (%)', badge: buildDeviationBadge(lastCalc.soil.base_sat, SOIL_ITEM_REFERENCE.base_sat) },
-            { key: 'cao_mgo_ratio', label: '石灰/苦土比', badge: buildDeviationBadge(lastCalc.soil.cao_mgo_ratio, SOIL_ITEM_REFERENCE.cao_mgo_ratio) },
-            { key: 'mgo_k2o_ratio', label: '苦土/加里比', badge: buildDeviationBadge(lastCalc.soil.mgo_k2o_ratio, SOIL_ITEM_REFERENCE.mgo_k2o_ratio) },
-            { key: 'no3n', label: '推定硝酸態窒素 (mg/100g)', badge: buildNutrientBadge(scaled.n) }
+        // 土壌分析結果サマリー（各項目の右側に適正範囲との比較バッジを表示）
+        const b = result.balance;
+        const withAuto = (entered, computed) => isFinite(entered)
+            ? { value: entered, text: String(entered) }
+            : { value: computed, text: isFinite(computed) ? `${computed.toFixed(2)}（計算値）` : '-' };
+        const cecItem = isFinite(soil.cec) ? { value: soil.cec, text: String(soil.cec) }
+            : { value: result.cec, text: isFinite(result.cec) ? `${result.cec}（土壌タイプ代表値）` : '-' };
+        const baseSatItem = withAuto(soil.base_sat, b.baseSat);
+        if (!isFinite(soil.base_sat) && isFinite(b.baseSat)) baseSatItem.text = `${b.baseSat.toFixed(0)}（計算値）`;
+        const plain = (v) => ({ value: v, text: isFinite(v) ? String(v) : '-' });
+        const nr = result.nitrogen;
+        const nBadge = nr.source === 'none' ? ''
+            : `<span class="soil-badge soil-badge-info">N ${nr.kg.toFixed(1)}kg/10aを差し引き</span>`;
+        const soilItems = [
+            { label: 'pH (H2O)', item: plain(soil.ph), range: ranges.ph, unit: 'ph' },
+            { label: 'EC (mS/cm)', item: plain(soil.ec), range: ranges.ec, unit: 'ec' },
+            { label: '石灰 CaO (mg/100g)', item: plain(soil.cao), range: ranges.cao },
+            { label: '苦土 MgO (mg/100g)', item: plain(soil.mgo), range: ranges.mgo },
+            { label: '加里 K2O (mg/100g)', item: plain(soil.k2o), range: ranges.k2o },
+            { label: '有効態リン酸 (mg/100g)', item: plain(soil.p2o5), range: ranges.p2o5 },
+            { label: 'CEC (me/100g)', item: cecItem, range: ranges.cec },
+            { label: '塩基飽和度 (%)', item: baseSatItem, range: ranges.base_sat },
+            { label: '石灰/苦土比 (当量)', item: withAuto(soil.cao_mgo_ratio, b.caMg), range: ranges.cao_mgo_ratio, unit: 'ratio' },
+            { label: '苦土/加里比 (当量)', item: withAuto(soil.mgo_k2o_ratio, b.mgK), range: ranges.mgo_k2o_ratio, unit: 'ratio' },
+            { label: '硝酸態窒素 (mg/100g)', item: nr.source === 'ec' ? { value: nr.no3, text: `${nr.no3.toFixed(1)}（ECから推定）` } : plain(soil.no3n), badge: nBadge },
+            { label: 'アンモニア態窒素 (mg/100g)', item: plain(soil.nh4n), badge: '' }
         ];
-        document.getElementById('soilSummaryGrid').innerHTML = soilLabels.map(item => `
+        document.getElementById('soilSummaryGrid').innerHTML = soilItems.map(s => `
             <div class="soil-summary-item">
-                <span class="label">${item.label}</span>
+                <span class="label">${s.label}<span class="soil-range-text">${rangeText(s.range, s.unit)}</span></span>
                 <div class="soil-summary-value-row">
-                    <span class="value">${lastCalc.soilSnapshot[item.key]}</span>
-                    ${item.badge}
+                    <span class="value">${escapeHtml(s.item.text)}</span>
+                    ${s.badge !== undefined ? s.badge : buildRangeBadge(s.item.value, s.range, s.unit)}
                 </div>
             </div>
         `).join('');
         document.getElementById('soilBadgeLegend').style.display = 'block';
 
-        // 目標・不足・投入量カード
-        const finalHtml = NUTRIENT_DEFS.map(def =>
-            buildFinalNpkCard(def.key, def.label, def.sub, scaled[def.key].target, scaled[def.key].deficit, totals[def.key])
+        // 計算条件（設計の根拠）
+        document.getElementById('reportConditionsText').textContent =
+            buildConversionText(result, field) + ' ' + buildNitrogenAdviceText(nr, result.factor, soil.ec);
+
+        // 設計量（基準・土壌・堆肥の内訳）と投入量
+        renderDesignGrid('finalReportDesignGrid', result, scale);
+        document.getElementById('finalReportNpkGrid').innerHTML = NUTRIENT_DEFS.map(def =>
+            buildFinalNpkCard(def, fc.need[def.key], fc.totals[def.key])
         ).join('');
-        document.getElementById('finalReportNpkGrid').innerHTML = finalHtml;
 
-        // 肥料の詳細テーブル
-        document.getElementById('finalReportFertTable').innerHTML = buildFertTableHTML(rows, totals);
-
-        // 堆肥のめやす
-        document.getElementById('finalReportCompostText').textContent = buildCompostText(crop, scale);
+        document.getElementById('finalReportFertTable').innerHTML = buildFertTableHTML(fc.rows, fc.totals);
+        document.getElementById('finalReportCompostText').textContent = buildCompostText(crop, compostInput, result.compost, scale);
+        document.getElementById('finalReportLimeText').textContent = buildLimeAdviceText(result, soil, scale);
 
         // 特筆事項（任意入力。未入力の場合はブロックごと非表示にする）
         const specialNotesValue = specialNotesInput.value.trim();
         const reportNotesBlock = document.getElementById('reportNotesBlock');
-        if (specialNotesValue) {
-            document.getElementById('finalReportNotesText').textContent = specialNotesValue;
-            reportNotesBlock.style.display = 'block';
-        } else {
-            document.getElementById('finalReportNotesText').textContent = '';
-            reportNotesBlock.style.display = 'none';
-        }
+        document.getElementById('finalReportNotesText').textContent = specialNotesValue;
+        reportNotesBlock.style.display = specialNotesValue ? 'block' : 'none';
 
         unlockStepTab(3);
         showStep(3);
@@ -1226,13 +1235,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // html2canvasでの撮影時に自動的に含まれる。ここでは重複させないためライセンス表記のみ追加する。
     function stampCaptureCanvas(canvas) {
         const ctx = canvas.getContext('2d');
+        // html2canvasが撮影時に設定した座標変換（画面外に置いた複製の位置補正）が残っているため、元に戻してから描く
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
         const padding = 5 * PX_PER_MM;
         const fontSize = 3.2 * PX_PER_MM;
 
         ctx.font = `bold ${fontSize}px "Noto Sans JP", "Hiragino Sans", Arial, sans-serif`;
         ctx.textAlign = 'right';
 
-        // 右下：ライセンス表記
         const footerLines = [
             'This project is licensed under the BSD 3-Clause License.',
             'Copyright (c) 2026 y-ookuma'
@@ -1255,7 +1265,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // captureAreaをA4の幅(px)で複製した、画面には表示されない複製要素を作る。
-    // 複製をbodyへ直接追加することで、.containerのmax-width制約を受けずにA4幅へ広げられる。
     function buildA4Clone() {
         const source = document.getElementById('captureArea');
         const clone = source.cloneNode(true);
@@ -1272,14 +1281,12 @@ document.addEventListener('DOMContentLoaded', () => {
         return clone;
     }
 
-    // captureAreaをA4幅で撮影し、スタンプ済みcanvasを返す（フォント読み込み待ち。読み込みが長引いても2秒でタイムアウトして進む）
-    // 返されるcanvasは横幅がA4横(297mm)固定、縦はA4何ページ分に相当する内容の長さになる。
+    // captureAreaをA4幅で撮影し、スタンプ済みcanvasを返す（フォント読み込み待ち。2秒でタイムアウトして進む）
+    // 返されるcanvasは横幅がA4縦の幅(210mm)固定、縦は内容の長さになる。
     function generateA4ReportCanvas() {
         const fontsReadyPromise = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
         const timeoutPromise = new Promise(resolve => setTimeout(resolve, 2000));
         const fontsReady = Promise.race([fontsReadyPromise, timeoutPromise]);
-
-        console.log(`[施肥設計書] A4レイアウト(幅${A4_WIDTH_PX}px)で画像化を開始します…`);
 
         // 画面表示は70%だが、PNG/PDF出力時は従来の100%フォントサイズで描画する
         const rootFontSizeBeforeExport = document.documentElement.style.fontSize;
@@ -1287,22 +1294,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const clone = buildA4Clone();
 
         return fontsReady
-            .then(() => {
-                console.log('[施肥設計書] フォント待ち完了。html2canvasで撮影します…');
-                return html2canvas(clone, {
-                    backgroundColor: '#FDFEFC',
-                    width: A4_WIDTH_PX,
-                    windowWidth: A4_WIDTH_PX,
-                    scale: 1
-                });
-            })
+            .then(() => html2canvas(clone, {
+                backgroundColor: '#FDFEFC',
+                width: A4_WIDTH_PX,
+                windowWidth: A4_WIDTH_PX,
+                scale: 1
+            }))
             .then(canvas => {
                 document.body.removeChild(clone);
                 document.documentElement.style.fontSize = rootFontSizeBeforeExport;
-                console.log(`[施肥設計書] 撮影完了 (${canvas.width}x${canvas.height})。ライセンスを印字します…`);
-                const stamped = stampCaptureCanvas(canvas);
-                console.log('[施肥設計書] 印字完了。');
-                return stamped;
+                return stampCaptureCanvas(canvas);
             })
             .catch(err => {
                 if (clone.parentNode) document.body.removeChild(clone);
@@ -1321,7 +1322,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(canvas => {
                 const link = document.createElement('a');
                 const cropName = document.getElementById('reportCropName').textContent || 'result';
-                link.download = `施肥設計書_${cropName}.png`;
+                link.download = `施肥設計書_${sanitizeFilename(cropName)}.png`;
                 link.href = canvas.toDataURL('image/png');
                 link.click();
             })
@@ -1333,11 +1334,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ---------- PDF出力（A4サイズで、内容が1ページに収まらない場合は複数ページに分割） ----------
     document.getElementById('exportPdfBtn').addEventListener('click', () => {
-        if (typeof html2canvas === 'undefined') {
-            alert('PDF出力機能の読み込みに失敗しました。通信環境をご確認のうえ再度お試しください。');
-            return;
-        }
-        if (typeof window.jspdf === 'undefined' || typeof window.jspdf.jsPDF === 'undefined') {
+        if (typeof html2canvas === 'undefined' || typeof window.jspdf === 'undefined' || typeof window.jspdf.jsPDF === 'undefined') {
             alert('PDF出力機能の読み込みに失敗しました。通信環境をご確認のうえ再度お試しください。');
             return;
         }
@@ -1371,11 +1368,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 const cropName = document.getElementById('reportCropName').textContent || 'result';
-                pdf.save(`施肥設計書_${cropName}.pdf`);
+                pdf.save(`施肥設計書_${sanitizeFilename(cropName)}.pdf`);
             })
             .catch(err => {
                 console.error('PDF出力エラー:', err);
                 alert('PDFの生成に失敗しました。もう一度お試しください。');
             });
     });
+
+    // ---------- 初期表示 ----------
+    soilTypeSelect.value = 'kuroboku_atsu_ta';
+    applySoilTypeDefaults();
+    updateCustomCropVisibility();
+    updateCompostVisibility();
+    updateAreaConvertedDisplay();
+    updateSpecialNotesCounter();
 });

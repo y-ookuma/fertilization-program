@@ -33,7 +33,7 @@
             <div class="hero-buttons">
                 <button id="helpBtn" class="btn-secondary">📖 手順書</button>
                 <button id="readmeBtn" class="btn-secondary">📄 README</button>
-                <button id="cropListBtn" class="btn-secondary">🌱 作物別基肥一覧</button>
+                <button id="cropListBtn" class="btn-secondary">🌱 作物別施肥基準一覧</button>
             </div>
         </header>
 
@@ -78,8 +78,9 @@
 
             <h3 class="sub-heading">① 栽培作物の選択</h3>
             <select id="cropSelect">
-                <option value="">-- 作物を選択してください --</option>
+                <option value="">-- 作物・作型を選択してください --</option>
             </select>
+            <p id="cropInfo" class="crop-info" style="display:none;"></p>
 
             <div id="customCropFields" class="grid-form custom-crop-fields" style="display:none;">
                 <div class="form-group custom-crop-name-group">
@@ -87,21 +88,48 @@
                     <input type="text" id="customCropName" placeholder="例: 自家系統のトマト">
                 </div>
                 <div class="form-group">
-                    <label for="customTargetN">目標N (kg/10a)</label>
+                    <label for="customTargetN">基肥N (kg/10a)</label>
                     <input type="number" id="customTargetN" step="0.1" min="0" placeholder="例: 20">
                 </div>
                 <div class="form-group">
-                    <label for="customTargetP">目標P2O5 (kg/10a)</label>
+                    <label for="customTargetP">基肥P2O5 (kg/10a)</label>
                     <input type="number" id="customTargetP" step="0.1" min="0" placeholder="例: 10">
                 </div>
                 <div class="form-group">
-                    <label for="customTargetK">目標K2O (kg/10a)</label>
+                    <label for="customTargetK">基肥K2O (kg/10a)</label>
                     <input type="number" id="customTargetK" step="0.1" min="0" placeholder="例: 25">
                 </div>
+                <div class="form-group">
+                    <label for="customEcClass">作物の種類（EC判定用）</label>
+                    <select id="customEcClass">
+                        <option value="fruit">果菜類</option>
+                        <option value="leafy">葉菜類・根菜類</option>
+                        <option value="paddy">水稲</option>
+                    </select>
+                </div>
             </div>
-            <p class="field-hint" id="customCropHint" style="display:none;">ここで入力したN・P2O5・K2O（kg/10a）が、そのままこの作物の目標値として以降の計算に使われます（未入力の項目は0として扱われます）。</p>
+            <p class="field-hint" id="customCropHint" style="display:none;">ここで入力したN・P2O5・K2O（kg/10a）を施肥基準（基肥量）として、土壌診断による減肥を計算します（未入力の項目は0として扱われます）。お住まいの都道府県の施肥基準の値を入力してください。</p>
 
-            <h3 class="sub-heading">② 土壌分析結果入力</h3>
+            <h3 class="sub-heading">② 土壌のタイプと作土</h3>
+            <div class="grid-form">
+                <div class="form-group soil-type-group">
+                    <label for="soilType">土壌のタイプ</label>
+                    <select id="soilType"></select>
+                </div>
+                <div class="form-group">
+                    <label for="soilDepth">作土深 (cm)</label>
+                    <input type="number" id="soilDepth" step="1" min="1" value="15">
+                </div>
+                <div class="form-group">
+                    <label for="soilBd">仮比重</label>
+                    <input type="number" id="soilBd" step="0.01" min="0.1">
+                </div>
+            </div>
+            <p id="conversionPreview" class="field-hint"></p>
+            <p class="field-hint">土壌のタイプを選ぶと、仮比重とCECの代表値（埼玉県施肥基準 表5）が入ります。実測値があれば書き換えてください。</p>
+
+            <h3 class="sub-heading">③ 土壌分析結果入力</h3>
+            <p class="field-hint">未測定の項目は空欄のままにしてください（0ではなく「未測定」として扱い、その項目による減肥・補正は行いません）。</p>
             <div class="grid-form">
                 <div class="form-group">
                     <label for="soil_ph">(1) pH (H2O)</label>
@@ -124,31 +152,67 @@
                     <input type="number" id="soil_k2o" step="1" placeholder="例: 25">
                 </div>
                 <div class="form-group">
-                    <label for="soil_p2o5">(6) トルオーグ燐酸 mg/100g</label>
+                    <label for="soil_p2o5">(6) 有効態リン酸（トルオーグ法） mg/100g</label>
                     <input type="number" id="soil_p2o5" step="1" placeholder="例: 40">
                 </div>
                 <div class="form-group">
-                    <label for="soil_cec">(7) CEC (推定) me</label>
+                    <label for="soil_cec">(7) CEC me/100g</label>
                     <input type="number" id="soil_cec" step="0.1" placeholder="例: 15.0">
                 </div>
                 <div class="form-group">
                     <label for="soil_base_sat">(8) 塩基飽和度 %</label>
-                    <input type="number" id="soil_base_sat" step="0.1" placeholder="例: 70.0">
+                    <input type="number" id="soil_base_sat" step="0.1" placeholder="未入力なら自動計算">
                 </div>
                 <div class="form-group">
-                    <label for="soil_cao_mgo_ratio">(9) 石灰/苦土比 (重)</label>
-                    <input type="number" id="soil_cao_mgo_ratio" step="0.1" placeholder="例: 5.0">
+                    <label for="soil_cao_mgo_ratio">(9) 石灰/苦土比（当量比）</label>
+                    <input type="number" id="soil_cao_mgo_ratio" step="0.01" placeholder="未入力なら自動計算">
                 </div>
                 <div class="form-group">
-                    <label for="soil_mgo_k2o_ratio">(10) 苦土/加里比 (重)</label>
-                    <input type="number" id="soil_mgo_k2o_ratio" step="0.1" placeholder="例: 1.2">
+                    <label for="soil_mgo_k2o_ratio">(10) 苦土/加里比（当量比）</label>
+                    <input type="number" id="soil_mgo_k2o_ratio" step="0.01" placeholder="未入力なら自動計算">
                 </div>
                 <div class="form-group">
-                    <label for="soil_no3n">(11) 推定硝酸態窒素 (mg/100g)</label>
-                    <input type="number" id="soil_no3n" step="0.1" placeholder="例: 12.0（未入力ならECから推定）">
+                    <label for="soil_no3n">(11) 硝酸態窒素 (mg/100g)</label>
+                    <input type="number" id="soil_no3n" step="0.1" placeholder="未入力ならECから推定">
+                </div>
+                <div class="form-group">
+                    <label for="soil_nh4n">(12) アンモニア態窒素 (mg/100g)</label>
+                    <input type="number" id="soil_nh4n" step="0.1" placeholder="任意">
                 </div>
             </div>
+            <p class="field-hint">(9)・(10)の比は、分析報告書の値が重量比の場合は空欄にしてください（CaO・MgO・K2Oの値から当量比を自動計算します）。</p>
 
+            <h3 class="sub-heading">④ 堆肥（任意）</h3>
+            <div class="grid-form">
+                <div class="form-group soil-type-group">
+                    <label for="compostType">施用する堆肥</label>
+                    <select id="compostType">
+                        <option value="">施用しない（差し引かない）</option>
+                        <option value="custom">成分を直接入力する</option>
+                    </select>
+                </div>
+            </div>
+            <div id="compostAmountFields" class="grid-form" style="display:none;">
+                <div class="form-group">
+                    <label for="compostTons">施用量 (t/10a)</label>
+                    <input type="number" id="compostTons" step="0.1" min="0" placeholder="例: 1.0">
+                </div>
+                <div class="form-group" id="compostMoistureGroup">
+                    <label for="compostMoisture">水分 (%)</label>
+                    <input type="number" id="compostMoisture" step="1" min="0" max="95" value="50">
+                </div>
+            </div>
+            <div id="compostCustomFields" class="grid-form" style="display:none;">
+                <div class="form-group"><label for="compostN">N 現物 (%)</label><input type="number" id="compostN" step="0.01" min="0"></div>
+                <div class="form-group"><label for="compostP">P2O5 現物 (%)</label><input type="number" id="compostP" step="0.01" min="0"></div>
+                <div class="form-group"><label for="compostK">K2O 現物 (%)</label><input type="number" id="compostK" step="0.01" min="0"></div>
+                <div class="form-group"><label for="compostEffN">N 肥効率 (%)</label><input type="number" id="compostEffN" step="1" min="0" max="100" value="20"></div>
+                <div class="form-group"><label for="compostEffP">P2O5 肥効率 (%)</label><input type="number" id="compostEffP" step="1" min="0" max="100" value="60"></div>
+                <div class="form-group"><label for="compostEffK">K2O 肥効率 (%)</label><input type="number" id="compostEffK" step="1" min="0" max="100" value="90"></div>
+            </div>
+            <p class="field-hint">家畜ふん堆肥の成分と肥効率は埼玉県施肥基準 表17・18の平均値（水分50%）を使い、入力した水分で補正します。分析値がある場合は「成分を直接入力する」を選んでください。</p>
+
+            <p id="staleNotice" class="stale-notice" style="display:none;">⚠️ 入力が変更されました。「🌾 施肥計算をする」を押して計算し直してください。</p>
             <div class="center">
                 <button id="calcBtn" class="btn-accent">🌾 施肥計算をする</button>
             </div>
@@ -167,17 +231,26 @@
                 </div>
             </div>
 
-            <h3 class="section-label">目標値・残存量・不足量</h3>
+            <h3 class="section-label">施肥基準 − 土壌・堆肥による調整 ＝ 設計量</h3>
             <div id="npkGrid" class="npk-grid"><!-- 動的挿入: N/P/K/石灰/苦土 --></div>
 
             <div class="advice-grid">
+                <div class="advice-card advice-conversion">
+                    <div class="advice-icon">
+                        <svg viewBox="0 0 48 48" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 30H42"/><path d="M6 38H42"/><path d="M14 30V14H34V30"/></svg>
+                    </div>
+                    <div class="advice-body">
+                        <h4>土壌の換算条件</h4>
+                        <p id="conversionAdviceText">-</p>
+                    </div>
+                </div>
                 <div class="advice-card advice-nitrogen">
                     <div class="advice-icon">
                         <svg viewBox="0 0 48 48" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 24H40" stroke-dasharray="2 5"/><path d="M14 14L34 34M34 14L14 34"/></svg>
                     </div>
                     <div class="advice-body">
-                        <h4>窒素(N)残存量の算定方法</h4>
-                        <p id="nitrogenAdviceText">(11)推定硝酸態窒素の入力があればそれを優先し、未入力の場合は電気伝導度(EC)から残存窒素量を推定します。</p>
+                        <h4>窒素(N)の減肥</h4>
+                        <p id="nitrogenAdviceText">-</p>
                     </div>
                 </div>
                 <div class="advice-card advice-compost">
@@ -185,7 +258,7 @@
                         <svg viewBox="0 0 48 48" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 36C6 28 14 28 24 28C34 28 42 28 42 36"/><path d="M24 28V16"/><path d="M24 16C24 16 18 16 18 10C24 10 24 16 24 16Z"/><path d="M24 20C24 20 30 20 30 14C24 14 24 20 24 20Z"/></svg>
                     </div>
                     <div class="advice-body">
-                        <h4>堆肥のめやす</h4>
+                        <h4>堆肥</h4>
                         <p id="compostAdviceText">作物を選択すると、その作物に合った堆肥のめやすを表示します。</p>
                     </div>
                 </div>
@@ -194,14 +267,14 @@
                         <svg viewBox="0 0 48 48" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 34L18 14H30L36 34L24 40L12 34Z"/><path d="M18 14L24 22L30 14"/></svg>
                     </div>
                     <div class="advice-body">
-                        <h4>石灰・苦土資材の選び方</h4>
-                        <p id="limeAdviceText">石灰/苦土比を入力すると、適した資材の種類をアドバイスします。</p>
+                        <h4>石灰・苦土の補正</h4>
+                        <p id="limeAdviceText">-</p>
                     </div>
                 </div>
             </div>
-            <p class="disclaimer">※ 目標値・窒素算定・堆肥・石灰資材のめやすはいずれも簡易的な参考値です。土壌診断結果や地域の施肥基準に合わせて調整してください。</p>
+            <p class="disclaimer">※ 基準量・減肥の方法は埼玉県主要農作物施肥基準（令和7年）に基づきます。減肥した場合は生育を確認し、生育が劣る場合は追肥等で調整してください。詳しくは README の「計算式と出典」をご覧ください。</p>
 
-            <h3 class="section-label">③ 圃場</h3>
+            <h3 class="section-label">⑤ 圃場</h3>
             <div class="form-group field-name-group">
                 <label for="fieldName">圃場名</label>
                 <input type="text" id="fieldName" placeholder="例: 北側ハウス1号">
@@ -217,7 +290,7 @@
             </div>
             <p class="disclaimer">面積が未入力の場合は10a（1,000㎡）として計算します。入力後は「投入量を計算する」で実面積に換算されます。</p>
 
-            <h3 class="section-label">④ 使用する肥料（最大8種類）</h3>
+            <h3 class="section-label">⑥ 使用する肥料（最大8種類）</h3>
             <div class="fert-csv-bar">
                 <button id="fertCsvLoadBtn" type="button" class="btn-secondary">📂 肥料一覧CSVを読み込む</button>
                 <input type="file" id="fertCsvFileInput" accept=".csv,text/csv" style="display:none;">
@@ -233,7 +306,7 @@
                 <h3 class="section-label">肥料ごとの使用量・袋数</h3>
                 <div id="fertResultTable" class="table-scroll"></div>
 
-                <h3 class="section-label">目標・投入・過不足（N・P・K・石灰・苦土）</h3>
+                <h3 class="section-label">設計量と投入量（N・P・K・石灰・苦土）</h3>
                 <div id="finalNpkGrid" class="npk-grid"></div>
             </div>
 
@@ -281,24 +354,33 @@
                     <span class="soil-badge soil-badge-low">↓不足</span>
                     <span class="soil-badge soil-badge-high">↑過剰</span>
                     <span class="soil-badge soil-badge-ok">✓ 適正</span>
-                    は、それぞれの項目の目安値との差を表します。N・P2O5・K2O・CaO・MgOはkg/10a換算の不足・過剰量も併記しています。
+                    は、埼玉県施肥基準の適正範囲（表7・表8。ECは藤原(2008)）と比べた結果です。
                 </p>
 
-                <h3 class="section-label">目標・不足・投入量（N・P・K・石灰・苦土）</h3>
+                <h3 class="section-label">計算条件</h3>
+                <p id="reportConditionsText" class="report-compost-text"></p>
+
+                <h3 class="section-label">設計量の内訳（施肥基準 − 土壌・堆肥）</h3>
+                <div id="finalReportDesignGrid" class="npk-grid"></div>
+
+                <h3 class="section-label">設計量と投入量（N・P・K・石灰・苦土）</h3>
                 <div id="finalReportNpkGrid" class="npk-grid"></div>
 
                 <h3 class="section-label">使用する肥料の詳細</h3>
                 <div id="finalReportFertTable" class="table-scroll"></div>
 
-                <h3 class="section-label">堆肥のめやす</h3>
+                <h3 class="section-label">堆肥</h3>
                 <p id="finalReportCompostText" class="report-compost-text"></p>
+
+                <h3 class="section-label">石灰・苦土の補正</h3>
+                <p id="finalReportLimeText" class="report-compost-text"></p>
 
                 <div id="reportNotesBlock" class="report-notes-block" style="display: none;">
                     <h3 class="section-label">特筆事項</h3>
                     <p id="finalReportNotesText" class="report-notes-text"></p>
                 </div>
 
-                <p class="disclaimer">※ 本資料は土壌分析値と作物ライブラリに基づく簡易計算の参考値です。実際の施肥設計は地域・JAの施肥基準に合わせて調整してください。</p>
+                <p class="disclaimer">※ 本資料は埼玉県主要農作物施肥基準（令和7年）の施肥基準・土壌診断による減肥の方法に基づいて計算しています。減肥した場合は生育状況を確認し、生育が劣る場合は追肥等で調整してください。</p>
             </div>
         </section>
 
@@ -323,20 +405,17 @@
             <span id="closeModal" class="close">&times;</span>
             <h2>施肥設計の手順書</h2>
             <ol>
-                <li><strong>①②③ タブについて:</strong> 画面上部の「① 土壌分析」「② 分析結果と肥料投入量」「③ 施肥設計書」のタブで、表示する内容を切り替えます。②・③のタブは、それぞれ手前のステップで計算（「施肥計算をする」「施肥設計完了」）を行うまでクリックできません。計算後はいつでもタブをクリックして前のステップに戻れます。</li>
-                <li><strong>(1) 土壌分析 ― 栽培作物の選択:</strong> ライブラリから目的の作物を選びます。目標収量に応じた基本養分吸収量が自動で読み込まれます。ライブラリにない作物は「✏️ 作物を直接入力する（任意）」を選ぶと、作物名（任意）と目標N・P2O5・K2O（kg/10a）を自由に入力できます。ここで入力した値はそのままこの作物の目標値として以降の計算（②・③）に使われます。</li>
-                <li><strong>(1) 土壌分析 ― 土壌分析値の入力:</strong> 土壌分析結果の各項目（pH、EC、有効態成分など）を入力し、「施肥計算をする」を押します。(11)推定硝酸態窒素が分かる場合は入力してください。未入力の場合はEC(電気伝導度)から自動推定します。</li>
-                <li><strong>(2) 施肥結果 ― 目標値の確認:</strong> N・P・K・石灰(CaO)・苦土(MgO)それぞれの目標値・残存量・不足量が表示されます。窒素(N)の残存量は、(11)推定硝酸態窒素の入力があればその値を優先し、未入力の場合のみ電気伝導度(EC)から推定します。堆肥や石灰・苦土資材のめやすも合わせて表示されます。</li>
-                <li><strong>(2) 施肥結果 ― 圃場の入力:</strong> 圃場名（任意）と面積（㎡・a・haのいずれか）を入力すると、目標値・不足量が実際の面積に換算されます（面積が未入力の場合は10a=1,000㎡として計算）。</li>
-                <li><strong>(2) 施肥結果 ― 使用する肥料の入力:</strong> 実際に使う肥料を最大8種類まで登録できます。肥料名・N/P2O5/K2O/CaO/MgO(%)・1袋の重量(kg)・今回投入量(kg)を入力し、「投入量を計算する」を押すと、肥料ごとの袋数と、8種類を合算した目標・投入・過不足が表示されます。</li>
-                <li><strong>(2) 施肥結果 ― 肥料一覧CSVの読み込み:</strong> 「📂 肥料一覧CSVを読み込む」ボタンから、お手元の肥料一覧CSV（例：JAさいたま肥料一覧.csv）を読み込むと、各肥料行に「CSVから選択」のプルダウンが現れます。肥料名を選ぶと、まずその行の肥料名・N・P2O5・K2O・石灰(CaO)・苦土(MgO)・1袋の重量(kg)・今回投入量(kg)を一度空欄にリセットしてから、選んだ肥料のN・P2O5・K2O・石灰(CaO)・苦土(MgO)・1袋の重量(kg)が自動入力されます（CSVに列がない項目・今回投入量(kg)は空欄のままなので、必要に応じて手入力してください）。選んだ後も数値は自由に修正できます。手元にCSVがない場合は「📁 サンプル肥料一覧CSV」ボタンからサンプルをダウンロードし、内容を編集してから読み込めます。</li>
-                <li><strong>(2) 施肥結果 ― 施肥設計完了:</strong> 「施肥設計完了」を押すと、③のタブが解放されて自動的に切り替わり、(3)施肥量に圃場名・作物・面積・土壌分析結果・肥料の詳細・最終的な目標／不足／投入量・特筆事項がまとめて表示されます。栽培作物名の右側には作成日が表示され、PNG・PDF保存時にもそのまま出力されます。</li>
-                <li><strong>(2) 施肥結果 ― 特筆事項の入力:</strong> 「施肥設計完了」ボタンの直前に、任意で最大400文字まで入力できる「特筆事項」欄があります。前作の残肥状況や排水の悪さなど、数値化しにくい気づいた点を自由に記入できます。入力内容は(3)施肥量の欄の下部に表示され、PNG・PDF保存やパラメータの保存・復元にも反映されます。未入力の場合、(3)施肥量にはこの欄自体が表示されません。</li>
-                <li><strong>(3) 施肥量 ― 土壌分析結果の過不足表示:</strong> 各項目の数値の右側に、目安値と比べて不足なら「↓◯◯%」、過剰なら「↑◯◯%」、適正なら「✓ 適正」のバッジが色分けして表示されます。N・P2O5・K2O・CaO(石灰)・MgO(苦土)は不足・過剰量(kg)も併記されます。</li>
-                <li><strong>(3) 施肥量 ― PNG・PDF保存:</strong> 「結果をPNG保存」「結果をPDF保存」ボタンで、施肥設計書の内容をA4サイズのレイアウトに合わせて保存できます。PNGはA4の幅に揃えた1枚の画像（内容が長い場合は縦に長くなります）、PDFはA4サイズのページで、1ページに収まらない場合は自動的に複数ページに分割されます。どちらも右下にライセンス表記が入ります。</li>
-                <li><strong>作物別基肥一覧:</strong> ヘッダーの「🌱 作物別基肥一覧」ボタンで、ライブラリに登録された39品目すべての基肥目標量（N・P2O5・K2O、10aあたり）を一覧表示できます。</li>
-                <li><strong>パラメータの保存・復元:</strong> ページ上部・下部どちらの「パラメータを保存」からもファイル名を指定して.jsonファイルをダウンロードできます。作物・土壌分析値・面積・8種類の肥料情報がすべて含まれます。「パラメータを復元」でファイルを選択して読み込めます（復元すると②・③のタブは再びロックされ①に戻るので、「施肥計算をする」からやり直してください）。</li>
-                <li><strong>サンプル肥料一覧CSV:</strong> 「パラメータを保存」「パラメータを復元」とは分けて、白背景のボタンとして右寄せに配置されています。「📁 サンプル肥料一覧CSV」ボタンから、GitHubの肥料CSVフォルダを新しいタブで開き、任意のサンプルCSVをダウンロードできます。ダウンロードしたCSVはお手元のファイルなので自由に編集でき、④の「肥料一覧CSVを読み込む」ボタンで読み込めます。</li>
+                <li><strong>①②③ タブ:</strong> 「① 土壌分析」「② 分析結果と肥料投入量」「③ 施肥設計書」を順に進めます。②・③のタブは、手前のステップで計算するまで選べません。①の入力を変えると②・③は再びロックされるので、「施肥計算をする」からやり直してください（古い計算結果のまま設計書が作られるのを防ぐためです）。</li>
+                <li><strong>① 栽培作物の選択:</strong> 作物と作型を選ぶと、埼玉県主要農作物施肥基準（令和7年）の基肥量と出典ページが表示されます。県基準に載っていない作物は「参考値」のグループにあります（出典未確認）。他県の基準を使う場合は「作物・基肥量を直接入力する」を選び、基肥のN・P2O5・K2Oを入力してください。</li>
+                <li><strong>② 土壌のタイプと作土:</strong> 土壌のタイプを選ぶと、仮比重とCECの代表値（県基準 表5）が入ります。作土深（既定15cm）と仮比重から、分析値のmg/100gをkg/10aに換算します。実測値があれば書き換えてください。</li>
+                <li><strong>③ 土壌分析結果:</strong> 分析報告書の値を入力します。未測定の項目は空欄のままにしてください（その項目による減肥・補正はしません）。石灰/苦土比・苦土/加里比は当量比です。報告書が重量比の場合や空欄の場合は、CaO・MgO・K2Oから自動計算します。</li>
+                <li><strong>④ 堆肥（任意）:</strong> 家畜ふん堆肥を使う場合は種類・施用量・水分を入力すると、有効成分（県基準 表17・18）を基肥から差し引きます。堆肥の分析値がある場合は「成分を直接入力する」を選びます。</li>
+                <li><strong>② 設計量の確認:</strong> 「施肥基準 − 土壌・堆肥による調整 ＝ 設計量」がカードで表示されます。窒素は無機態窒素の3mg/100gを超える分、リン酸は有効態リン酸に応じた減肥率、加里はCEC別の適正上限＋10mgを超える分を差し引きます。石灰・苦土はCEC別の適正範囲の下限までの不足量です。</li>
+                <li><strong>⑤ 圃場・⑥ 使用する肥料:</strong> 圃場名と面積を入力し、使う肥料（最大8種類）の成分・袋の重さ・投入量を入力して「投入量を計算する」を押すと、設計量と投入量の過不足・袋数が表示されます。「📂 肥料一覧CSVを読み込む」で肥料名から成分を自動入力できます。</li>
+                <li><strong>特筆事項:</strong> 前作の残肥や排水の状態など、数値にしにくいことを400文字まで記入できます。施肥設計書にも載ります。</li>
+                <li><strong>③ 施肥設計書:</strong> 「施肥設計完了」を押すと、土壌分析結果（県基準の適正範囲との比較）、計算条件、設計量の内訳、投入量、使用する肥料、堆肥、石灰・苦土の補正がまとまります。PNG・PDFでA4レイアウトで保存できます。</li>
+                <li><strong>作物別施肥基準一覧:</strong> ヘッダーのボタンで、登録している作物・作型の基肥と合計の施肥量、出典ページを一覧できます。</li>
+                <li><strong>パラメータの保存・復元:</strong> 作物・土壌・堆肥・面積・肥料・特筆事項を.jsonファイルに保存・復元できます。旧バージョンで保存したファイルも読み込めます（作物は対応する作型に読み替えます）。</li>
             </ol>
             <p class="modal-readme-link">詳しい計算式やQ&amp;Aは <button id="readmeInlineLink" class="link-button">README.md</button> をご覧ください。</p>
         </div>
@@ -354,8 +433,8 @@
     <div id="cropListModal" class="modal">
         <div class="modal-content modal-content-wide">
             <span id="closeCropListModal" class="close">&times;</span>
-            <h2>作物別 基肥一覧（10aあたり）</h2>
-            <p class="disclaimer">「目標N・P2O5・K2O」は、各作物の養分吸収量×標準元肥比率から算出した基肥（元肥）の目安量です。石灰(CaO)・苦土(MgO)の目標値はすべての作物で共通（目安：CaO 45kg/10a、MgO 6kg/10a）のため、この一覧には含めていません。</p>
+            <h2>作物別 施肥基準一覧（kg/10a）</h2>
+            <p class="disclaimer">埼玉県主要農作物施肥基準（令和7年1月）の野菜・水稲の施肥基準から、基肥と合計（基肥＋追肥）を転記しています。灰色の行は県基準に掲載のない作物の参考値（旧ライブラリの養分吸収量×標準元肥比率、出典未確認）です。石灰・苦土は作物ではなく土壌のCECで決まるため、この一覧には含めていません。</p>
             <div class="table-scroll" id="cropListTable"></div>
         </div>
     </div>
@@ -363,6 +442,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+    <script src="saitama-data.js"></script>
+    <script src="calc.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

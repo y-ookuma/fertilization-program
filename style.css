@@ -507,6 +507,7 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus {
 .advice-lime { --tint: var(--stone-tint); --accent: var(--stone); }
 .advice-compost { --tint: var(--soil-tint); --accent: var(--soil); }
 .advice-nitrogen { --tint: var(--teal-tint); --accent: var(--teal); }
+.advice-conversion { --tint: var(--purple-tint); --accent: var(--purple); }
 
 /* ---------- Field name (圃場名) ---------- */
 .field-name-group { max-width: 360px; margin-bottom: 14px; }
@@ -1016,8 +1017,9 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus {
 
 /* ---------- A4出力：余白確保・可読性向上 ---------- */
 .a4-export {
-    /* A4用紙の上下左右に約1cm（200dpi換算：約79px）の余白を確保 */
-    padding: 79px !important;
+    /* A4用紙の上下左右に約1cm（200dpi換算：約79px）の余白を確保。
+       下端はライセンス表記の帯（約12.4mm＝約98px）と重ならないよう広めにとる */
+    padding: 79px 79px 120px !important;
 }
 .a4-export .capture-card,
 .a4-export .result-card {
@@ -1051,3 +1053,31 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus {
 .a4-export .report-compost-text { font-size: 1.716rem; line-height: 1.8; padding: 20px 22px; }
 .a4-export .report-notes-text { font-size: 1.716rem; line-height: 1.85; padding: 20px 22px; }
 .a4-export .disclaimer { font-size: 1.404rem; }
+
+/* ---------- 県基準対応（作物情報・土壌タイプ・範囲表示） ---------- */
+.crop-info {
+    margin: 10px 0 4px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: var(--green-tint);
+    color: var(--ink);
+    font-size: 0.95em;
+    line-height: 1.7;
+}
+.crop-info.is-reference { background: var(--stone-tint); }
+.crop-info-src { color: var(--ink-soft); font-size: 0.92em; }
+.crop-info-note { color: var(--ink); font-size: 0.92em; }
+.soil-type-group { grid-column: span 2; }
+@media (max-width: 600px) { .soil-type-group { grid-column: auto; } }
+.stale-notice {
+    margin: 14px 0 0;
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: var(--red-tint);
+    color: var(--red);
+    font-weight: 700;
+}
+.npk-numbers-wrap { flex-wrap: wrap; gap: 4px 12px; }
+.soil-badge-info { background: var(--teal-tint); color: var(--teal); }
+.soil-range-text { display: block; font-size: 0.85em; font-weight: 400; color: var(--ink-soft); }
+.fert-table tr.is-reference-row td { background: var(--stone-tint); color: var(--ink-soft); }
