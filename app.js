@@ -133,7 +133,8 @@ document.addEventListener('DOMContentLoaded', () => {
     DATA.soilTypes.forEach(t => {
         const option = document.createElement('option');
         option.value = t.id;
-        option.textContent = t.name;
+        // 沖積土・洪積土の区分はプルダウンの表示にだけ添える（設計書・PDFは t.name のまま）
+        option.textContent = t.deposit ? `${t.name}〔${t.deposit}〕` : t.name;
         soilTypeSelect.appendChild(option);
     });
     function getSoilType() {

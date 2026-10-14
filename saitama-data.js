@@ -155,6 +155,8 @@
     //   表5に幅で示された値は、その中央値を代表値とした（アプリでの取り扱い）。
     //   cecMin / pUpper … 技術編 表7「土壌診断基準（概略）」(p.11) の該当列
     //   ecGroup … 藤原(2008)の土壌区分（kuroboku=黒ボク土、alluvial=沖積土・洪積土、sandy=砂質土）
+    //   deposit … 沖積土（低地の新しい堆積物）／洪積土（台地の古い堆積物）の区分。表5にはない、アプリの補足。
+    //             一般的な土壌分類との対応でプルダウンの表示にだけ添える（黒ボク土・砂質土・その他には付けない）
     // ---------------------------------------------------------------
     const soilTypes = [
         { id: 'kuroboku_atsu_ta', name: '黒ボク土（厚層多腐植質）', cec: 27.3, bd: 0.75, ecGroup: 'kuroboku', cecMin: 15, pUpper: 100 },
@@ -164,13 +166,13 @@
         { id: 'tanshoku_kuroboku', name: '淡色黒ボク土', cec: 19.5, bd: 1.02, ecGroup: 'kuroboku', cecMin: 15, pUpper: 100 },
         { id: 'tashitsu_kuroboku', name: '多湿黒ボク土（表層腐植質）', cec: 26.0, bd: 0.72, ecGroup: 'kuroboku', cecMin: 15, pUpper: 100 },
         { id: 'kuroboku_gley', name: '黒ボクグライ土（腐植質）', cec: 27.0, bd: 0.80, ecGroup: 'kuroboku', cecMin: 15, pUpper: 100 },
-        { id: 'kasshoku_shinrin', name: '褐色森林土（細粒）', cec: 19.8, bd: 1.22, ecGroup: 'alluvial', cecMin: 12, pUpper: 75 },
-        { id: 'haiiro_daichi', name: '灰色台地土（細粒）', cec: 18.7, bd: 1.21, ecGroup: 'alluvial', cecMin: 12, pUpper: 75 },
-        { id: 'kasshoku_teichi', name: '褐色低地土（細粒・斑紋なし）', cec: 15.3, bd: 1.11, ecGroup: 'alluvial', cecMin: 12, pUpper: 75 },
-        { id: 'haiiro_teichi', name: '灰色低地土（細粒灰色系）', cec: 18.7, bd: 1.11, ecGroup: 'alluvial', cecMin: 12, pUpper: 75 },
-        { id: 'gley', name: 'グライ土（細粒）', cec: 21.6, bd: 0.96, ecGroup: 'alluvial', cecMin: 12, pUpper: 75 },
-        { id: 'kokudei', name: '黒泥土', cec: 28.6, bd: 0.78, ecGroup: 'alluvial', cecMin: 15, pUpper: 75 },
-        { id: 'deitan', name: '泥炭土', cec: 26.2, bd: 0.89, ecGroup: 'alluvial', cecMin: 15, pUpper: 75 },
+        { id: 'kasshoku_shinrin', name: '褐色森林土（細粒）', deposit: '洪積土', cec: 19.8, bd: 1.22, ecGroup: 'alluvial', cecMin: 12, pUpper: 75 },
+        { id: 'haiiro_daichi', name: '灰色台地土（細粒）', deposit: '洪積土', cec: 18.7, bd: 1.21, ecGroup: 'alluvial', cecMin: 12, pUpper: 75 },
+        { id: 'kasshoku_teichi', name: '褐色低地土（細粒・斑紋なし）', deposit: '沖積土', cec: 15.3, bd: 1.11, ecGroup: 'alluvial', cecMin: 12, pUpper: 75 },
+        { id: 'haiiro_teichi', name: '灰色低地土（細粒灰色系）', deposit: '沖積土', cec: 18.7, bd: 1.11, ecGroup: 'alluvial', cecMin: 12, pUpper: 75 },
+        { id: 'gley', name: 'グライ土（細粒）', deposit: '沖積土', cec: 21.6, bd: 0.96, ecGroup: 'alluvial', cecMin: 12, pUpper: 75 },
+        { id: 'kokudei', name: '黒泥土', deposit: '沖積土', cec: 28.6, bd: 0.78, ecGroup: 'alluvial', cecMin: 15, pUpper: 75 },
+        { id: 'deitan', name: '泥炭土', deposit: '沖積土', cec: 26.2, bd: 0.89, ecGroup: 'alluvial', cecMin: 15, pUpper: 75 },
         // 表5にない土壌。仮比重は[青森]p.38の目安（砂土・重粘土壌1.1）
         { id: 'sandy', name: '砂質土（CECは分析値を入力）', cec: null, bd: 1.1, ecGroup: 'sandy', cecMin: 12, pUpper: 75 },
         { id: 'other', name: 'その他・不明（CEC・仮比重を入力）', cec: null, bd: 1.0, ecGroup: 'alluvial', cecMin: 12, pUpper: 75 }
