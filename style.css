@@ -510,7 +510,8 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus {
 .advice-conversion { --tint: var(--purple-tint); --accent: var(--purple); }
 
 /* ---------- Field name (圃場名) ---------- */
-.field-name-group { max-width: 360px; margin-bottom: 14px; }
+.field-name-row { display: flex; flex-wrap: wrap; gap: 0 16px; }
+.field-name-group { flex: 1 1 220px; max-width: 360px; margin-bottom: 14px; }
 
 .disclaimer {
     margin: 16px 2px 0;
@@ -583,7 +584,7 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus {
     border-radius: 14px;
     padding: 14px 16px;
 }
-.fert-row-head { padding-top: 26px; flex-shrink: 0; }
+.fert-row-head { padding-top: calc(0.936rem * 2.6 + 6px + 4px); flex-shrink: 0; }
 .fert-index {
     display: inline-flex;
     align-items: center;
@@ -602,7 +603,21 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus {
     grid-template-columns: 1.5fr repeat(7, 1fr);
     gap: 10px;
 }
-.fert-row-tail { padding-top: 24px; flex-shrink: 0; }
+.fert-row-tail { padding-top: calc(0.936rem * 2.6 + 6px); flex-shrink: 0; display: flex; flex-direction: column; gap: 6px; }
+.fert-move-btns { display: flex; gap: 4px; }
+.btn-fert-move {
+    font-size: 0.884rem;
+    padding: 6px 8px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--stone-tint);
+    color: var(--ink);
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.btn-fert-move:hover:not(:disabled) { background: var(--green); color: #fff; }
+.btn-fert-move:disabled { opacity: 0.35; cursor: not-allowed; }
 .btn-fert-clear {
     font-size: 0.884rem;
     padding: 6px 10px;
@@ -616,7 +631,14 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus {
 }
 .btn-fert-clear:hover { background: var(--red); color: #fff; }
 .fert-name-group input { font-weight: 700; }
-.fert-grid .form-group label { font-size: 0.936rem; }
+/* 見出しは全項目2行分の高さにそろえ（1行の見出しは下寄せ）、入力欄の高さ・位置を統一する */
+.fert-grid .form-group label {
+    font-size: 0.936rem;
+    line-height: 1.3;
+    min-height: 2.6em;
+    display: flex;
+    align-items: flex-end;
+}
 
 /* ---------- Tables (fertilizer results / report) ---------- */
 .table-scroll { overflow-x: auto; }
@@ -897,7 +919,7 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus {
     .result-header-actions button { width: 100%; }
     .fert-row { flex-direction: column; }
     .fert-row-head { padding-top: 0; }
-    .fert-row-tail { padding-top: 0; align-self: flex-end; }
+    .fert-row-tail { padding-top: 0; align-self: flex-end; flex-direction: row; }
     .flow-step .flow-label { font-size: 0.988rem; }
     .flow-step { padding: 7px 10px; }
 }

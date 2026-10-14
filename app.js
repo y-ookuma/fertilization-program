@@ -239,6 +239,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>
                 <div class="fert-row-tail">
+                    <div class="fert-move-btns">
+                        <button type="button" id="fert_up_${i}" class="btn-fert-move" title="${i}行目を上の行と入れ替え"${i === 1 ? ' disabled' : ''}>▲ 上へ</button>
+                        <button type="button" id="fert_down_${i}" class="btn-fert-move" title="${i}行目を下の行と入れ替え"${i === FERT_COUNT ? ' disabled' : ''}>▼ 下へ</button>
+                    </div>
                     <button type="button" id="fert_clear_${i}" class="btn-fert-clear" title="${i}行目の肥料名〜今回投入量を消去">🗑 削除</button>
                 </div>
             </div>
@@ -426,6 +430,19 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById(`fert_csv_select_${i}`).value = '';
             invalidateStep3();
         });
+        // 上へ・下へボタン：隣の行と、肥料名〜今回投入量とCSVの選択を入れ替える
+        document.getElementById(`fert_up_${i}`).addEventListener('click', () => swapFertRows(i, i - 1));
+        document.getElementById(`fert_down_${i}`).addEventListener('click', () => swapFertRows(i, i + 1));
+    }
+
+    function swapFertRows(a, b) {
+        if (b < 1 || b > FERT_COUNT) return;
+        ['name', 'n', 'p', 'k', 'cao', 'mgo', 'bagweight', 'amount', 'csv_select'].forEach(f => {
+            const elA = document.getElementById(`fert_${f}_${a}`);
+            const elB = document.getElementById(`fert_${f}_${b}`);
+            [elA.value, elB.value] = [elB.value, elA.value];
+        });
+        invalidateStep3();
     }
 
     const fertCsvFileInput = document.getElementById('fertCsvFileInput');
@@ -689,6 +706,7 @@ document.addEventListener('DOMContentLoaded', () => {
             area: {
                 value: document.getElementById('areaValue').value,
                 unit: document.getElementById('areaUnit').value,
+                ownerName: document.getElementById('ownerName').value,
                 fieldName: document.getElementById('fieldName').value
             },
             fertilizers: fertilizers,
@@ -724,6 +742,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (data.area) {
             document.getElementById('areaValue').value = data.area.value || '';
             document.getElementById('areaUnit').value = data.area.unit || 'm2';
+            document.getElementById('ownerName').value = data.area.ownerName || '';
             document.getElementById('fieldName').value = data.area.fieldName || '';
         }
         updateAreaConvertedDisplay();
@@ -1201,6 +1220,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const { areaM2, scale } = fc;
         const a = areaM2 / 100;
         const ha = areaM2 / 10000;
+        const ownerName = document.getElementById('ownerName').value.trim();
         const fieldName = document.getElementById('fieldName').value.trim();
 
         // バッジ・タイトル（作成日は栽培作物名の右側に表示し、PNG/PDF出力にも含まれる）
@@ -1210,6 +1230,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('captureCropName').textContent = `${crop.emoji} ${cropLabel(crop)}`;
         document.getElementById('captureDateBadge').textContent = `作成日: ${todayStamp()}`;
         document.getElementById('captureAreaCaption').textContent =
+            (ownerName ? `名前：${ownerName} ／ ` : '') +
             (fieldName ? `圃場名：${fieldName} ／ ` : '') +
             `面積：${areaM2.toLocaleString('ja-JP', { maximumFractionDigits: 1 })} ㎡（${a.toFixed(2)} a ／ ${ha.toFixed(3)} ha）`;
 
@@ -1274,7 +1295,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // PDF用の表（A4縦1枚）。画面の設計書と同じ値・同じ文章から作る
         lastPdfSheetHtml = buildPdfSheetHTML({
-            crop, fieldName, areaM2, field, result, fc, soilItems,
+            crop, ownerName, fieldName, areaM2, field, result, fc, soilItems,
             date: todayStamp(),
             conditionsText: document.getElementById('reportConditionsText').textContent,
             compostText: document.getElementById('finalReportCompostText').textContent,
@@ -1348,17 +1369,17 @@ document.addEventListener('DOMContentLoaded', () => {
             '</tr>').join('');
 
         const box = (label, text) => text ? `<div class="pdf-box"><b>${label}：</b>${esc(text)}</div>` : '';
-        const fieldLine = (r.fieldName ? `${esc(r.fieldName)} ／ ` : '') + `作成日 ${r.date}`;
+        const fieldLine = [r.ownerName, r.fieldName].filter(Boolean).map(esc).concat(`作成日 ${r.date}`).join(' ／ ');
 
         return `
             <div class="pdf-title"><b>施肥設計書</b><span>${esc(cropLabel(r.crop))}<br>${fieldLine}</span></div>
             <table class="pdf-t">
-                <tr><td class="pdf-lbl">作物</td><td>${esc(`${r.crop.emoji} ${cropLabel(r.crop)}`)}</td>
+                <tr><td class="pdf-lbl">名前</td><td>${esc(r.ownerName || '—')}</td>
                     <td class="pdf-lbl">圃場名</td><td>${esc(r.fieldName || '—')}</td>
                     <td class="pdf-lbl">面積</td><td>${r.areaM2.toLocaleString('ja-JP', { maximumFractionDigits: 1 })}㎡（${a.toFixed(2)}a）</td></tr>
-                <tr><td class="pdf-lbl">土壌</td><td>${esc(r.field.soilType.name)}</td>
-                    <td class="pdf-lbl">作土深</td><td>${r.field.depth}cm（仮比重${r.field.bd}）</td>
-                    <td class="pdf-lbl">作成日</td><td>${r.date}</td></tr>
+                <tr><td class="pdf-lbl">作物</td><td>${esc(`${r.crop.emoji} ${cropLabel(r.crop)}`)}</td>
+                    <td class="pdf-lbl">土壌</td><td>${esc(r.field.soilType.name)}</td>
+                    <td class="pdf-lbl">作土深</td><td>${r.field.depth}cm（仮比重${r.field.bd}）</td></tr>
             </table>
             <div><div class="pdf-sec">土壌分析結果</div>
                 <table class="pdf-t pdf-soil">
