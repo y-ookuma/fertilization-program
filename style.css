@@ -602,6 +602,19 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus {
     grid-template-columns: 1.5fr repeat(7, 1fr);
     gap: 10px;
 }
+.fert-row-tail { padding-top: 24px; flex-shrink: 0; }
+.btn-fert-clear {
+    font-size: 0.884rem;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--red-tint);
+    color: var(--red);
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.btn-fert-clear:hover { background: var(--red); color: #fff; }
 .fert-name-group input { font-weight: 700; }
 .fert-grid .form-group label { font-size: 0.936rem; }
 
@@ -884,6 +897,7 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus {
     .result-header-actions button { width: 100%; }
     .fert-row { flex-direction: column; }
     .fert-row-head { padding-top: 0; }
+    .fert-row-tail { padding-top: 0; align-self: flex-end; }
     .flow-step .flow-label { font-size: 0.988rem; }
     .flow-step { padding: 7px 10px; }
 }
@@ -1089,3 +1103,68 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus {
 .soil-badge-info { background: var(--teal-tint); color: var(--teal); }
 .soil-range-text { display: block; font-size: 0.85em; font-weight: 400; color: var(--ink-soft); }
 .fert-table tr.is-reference-row td { background: var(--stone-tint); color: var(--ink-soft); }
+
+
+/* ---------- PDF用の表（A4縦1枚・表形式。app.js の buildPdfSheetHTML で生成し、出力時だけ画面外に置く） ---------- */
+.pdf-sheet {
+    position: fixed;
+    top: 0;
+    left: -99999px;
+    width: 794px;
+    min-height: 1123px; /* A4縦（96dpi相当）。内容が少なくても下端に注記が来るようにする */
+    box-sizing: border-box;
+    padding: 36px 36px 22px;
+    background: #FFFFFF;
+    color: #222;
+    font-family: "Noto Sans JP", sans-serif;
+    font-size: 11.5px;
+    line-height: 1.4;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.pdf-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-bottom: 3px solid var(--green-deep);
+    padding-bottom: 5px;
+}
+.pdf-title b { font-size: 28px; letter-spacing: 0.1em; }
+.pdf-title span { text-align: right; font-size: 11px; }
+.pdf-sec {
+    font-weight: 700;
+    font-size: 12.5px;
+    border-left: 5px solid var(--green-deep);
+    padding-left: 6px;
+    margin-bottom: 4px;
+}
+.pdf-t { border-collapse: collapse; width: 100%; font-size: inherit; font-variant-numeric: tabular-nums; }
+.pdf-t th, .pdf-t td { border: 1px solid #9AA59A; padding: 3px 6px; }
+.pdf-t th { background: #E4EFE6; font-weight: 700; text-align: center; white-space: nowrap; line-height: 1.25; }
+.pdf-t .pdf-lbl { background: #F4F7F2; white-space: nowrap; }
+.pdf-t .pdf-num { text-align: right; white-space: nowrap; }
+.pdf-t .pdf-c { text-align: center; white-space: nowrap; }
+.pdf-t small { font-size: 0.85em; }
+/* 土壌分析は8列を横に並べるため、文字を少し小さくし、分析値・判定は折り返せるようにする */
+.pdf-soil { font-size: 10.5px; table-layout: fixed; }
+.pdf-soil td.pdf-num, .pdf-soil td.pdf-c { white-space: normal; }
+.pdf-soil .pdf-lbl { white-space: normal; }
+.pdf-sum td { background: #F4F7F2; font-weight: 700; }
+.pdf-ok { color: #2E7D4A; font-weight: 700; }
+.pdf-low { color: #C0392B; font-weight: 700; }
+.pdf-high { color: #2F6FB0; font-weight: 700; }
+.pdf-stack { display: flex; flex-direction: column; gap: 6px; }
+.pdf-box { border: 1px solid #9AA59A; padding: 5px 8px; white-space: pre-wrap; word-break: break-all; }
+.pdf-foot {
+    margin-top: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 16px;
+    font-size: 9px;
+    color: #555;
+    border-top: 1px solid #9AA59A;
+    padding-top: 4px;
+}
+.pdf-foot span:last-child { text-align: right; white-space: nowrap; }

@@ -54,6 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const cropSelect = document.getElementById('cropSelect');
     let lastCalc = null;      // (1) 施肥計算をする、時点の情報
     let lastFertCalc = null;  // (2) 投入量を計算する、時点の情報
+    let lastPdfSheetHtml = ''; // (3) 施肥設計完了、時点のPDF用の表（A4縦1枚）
     const customCropFields = document.getElementById('customCropFields');
     const customCropHint = document.getElementById('customCropHint');
 
@@ -237,6 +238,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         <input type="number" id="fert_amount_${i}" step="0.1" placeholder="例: 40">
                     </div>
                 </div>
+                <div class="fert-row-tail">
+                    <button type="button" id="fert_clear_${i}" class="btn-fert-clear" title="${i}行目の肥料名〜今回投入量を消去">🗑 削除</button>
+                </div>
             </div>
         `;
     }
@@ -412,6 +416,14 @@ document.addEventListener('DOMContentLoaded', () => {
     for (let i = 1; i <= FERT_COUNT; i++) {
         document.getElementById(`fert_csv_select_${i}`).addEventListener('change', (e) => {
             applyFertCsvSelection(i, e.target.value);
+            invalidateStep3();
+        });
+        // 削除ボタン：肥料名〜今回投入量とCSVの選択を初期化する
+        document.getElementById(`fert_clear_${i}`).addEventListener('click', () => {
+            ['name', 'n', 'p', 'k', 'cao', 'mgo', 'bagweight', 'amount'].forEach(f => {
+                document.getElementById(`fert_${f}_${i}`).value = '';
+            });
+            document.getElementById(`fert_csv_select_${i}`).value = '';
             invalidateStep3();
         });
     }
@@ -846,23 +858,33 @@ document.addEventListener('DOMContentLoaded', () => {
     //                  追加＝肥料の投入量、施肥後＝残存＋追加（kg、面積換算後）
     //   石灰・苦土   … 目標＝CEC別の適正範囲（mg/100g）、残存＝現状の分析値、
     //                  施肥後＝現状＋追加(kg/10a)÷換算係数 の推定値（mg/100g）
+    // 施肥後の収支（画面のカードとPDFの表で共用）
+    function calcFinalBalance(key, result, scale, applied) {
+        const item = result[key];
+        if (key === 'cao' || key === 'mgo') {
+            const addedMg = scale > 0 ? (applied / scale) / result.factor : 0;
+            const after = item.measured + addedMg;
+            return { range: item.range, measured: item.measured, addedMg, after, state: Calc.compareRange(after, item.range) };
+        }
+        const target = item.standard * scale;
+        const residual = (item.soilCredit + item.compostCredit) * scale;
+        const after = residual + applied;
+        return { target, residual, after, diff: after - target };
+    }
+
     function buildFinalCard(def, result, scale, applied) {
-        const item = result[def.key];
+        const bal = calcFinalBalance(def.key, result, scale, applied);
         const row = (label, value, unit) =>
             `<div class="final-row"><span class="final-label">${label}</span><span class="final-value"><strong>${value}</strong>${unit}</span></div>`;
         let rows, pct, status;
         if (def.key === 'cao' || def.key === 'mgo') {
-            const range = item.range;
-            const measured = item.measured;
-            const addedMg = scale > 0 ? (applied / scale) / result.factor : 0;
-            const after = measured + addedMg;
+            const { range, measured, addedMg, after, state } = bal;
             rows = [
                 row('目標（適正範囲）', range ? `${range[0]}〜${range[1]}` : '-', 'mg/100g'),
                 row('残存（現状）', isFinite(measured) ? measured.toFixed(0) : '-', 'mg/100g'),
                 row('追加（肥料）', `${applied.toFixed(1)}kg ＝ +${addedMg.toFixed(1)}`, 'mg/100g'),
                 row('施肥後（推定）', isFinite(after) ? after.toFixed(0) : '-', 'mg/100g')
             ];
-            const state = Calc.compareRange(after, range);
             pct = range && isFinite(after) ? Math.min(100, (after / range[0]) * 100) : 0;
             if (!range) status = 'CECが不明のため判定できません';
             else if (!isFinite(measured)) status = '分析値が未入力のため判定できません';
@@ -870,10 +892,7 @@ document.addEventListener('DOMContentLoaded', () => {
             else if (state === 'low') status = `⚠️ 下限まで あと ${(range[0] - after).toFixed(0)}mg（約 ${((range[0] - after) * result.factor * scale).toFixed(1)}kg）`;
             else status = `⚠️ 上限を ${(after - range[1]).toFixed(0)}mg 超える見込みです`;
         } else {
-            const target = item.standard * scale;
-            const residual = (item.soilCredit + item.compostCredit) * scale;
-            const after = residual + applied;
-            const diff = after - target;
+            const { target, residual, after, diff } = bal;
             rows = [
                 row('目標（基準）', target.toFixed(1), 'kg'),
                 row('残存（土壌＋堆肥）', residual.toFixed(1), 'kg'),
@@ -974,12 +993,17 @@ document.addEventListener('DOMContentLoaded', () => {
         return `<span class="soil-badge soil-badge-high">↑ 上限${range[1]}を ${(value - range[1]).toFixed(unit === 'ratio' || unit === 'ec' ? 2 : 1)} 超過</span>`;
     }
 
-    function rangeText(range, unit) {
+    // 適正範囲を「a〜b」「a以上」「b以下」の形にする（範囲がなければ空文字）
+    function rangePlainText(range, unit) {
         if (!range) return '';
         const f = (v) => (unit === 'ph' ? v.toFixed(1) : String(v));
-        if (range[1] === Infinity) return `（適正 ${f(range[0])}以上）`;
-        if (range[0] === 0) return `（適正 ${f(range[1])}以下）`;
-        return `（適正 ${f(range[0])}〜${f(range[1])}）`;
+        if (range[1] === Infinity) return `${f(range[0])}以上`;
+        if (range[0] === 0) return `${f(range[1])}以下`;
+        return `${f(range[0])}〜${f(range[1])}`;
+    }
+
+    function rangeText(range, unit) {
+        return range ? `（適正 ${rangePlainText(range, unit)}）` : '';
     }
 
     function renderDesignGrid(containerId, result, scale) {
@@ -1213,7 +1237,8 @@ document.addEventListener('DOMContentLoaded', () => {
             { label: '塩基飽和度 (%)', item: baseSatItem, range: ranges.base_sat },
             { label: '石灰/苦土比 (当量)', item: withAuto(soil.cao_mgo_ratio, b.caMg), range: ranges.cao_mgo_ratio, unit: 'ratio' },
             { label: '苦土/加里比 (当量)', item: withAuto(soil.mgo_k2o_ratio, b.mgK), range: ranges.mgo_k2o_ratio, unit: 'ratio' },
-            { label: '硝酸態窒素 (mg/100g)', item: nr.source === 'ec' ? { value: nr.no3, text: `${nr.no3.toFixed(1)}（ECから推定）` } : plain(soil.no3n), badge: nBadge },
+            { label: '硝酸態窒素 (mg/100g)', item: nr.source === 'ec' ? { value: nr.no3, text: `${nr.no3.toFixed(1)}（ECから推定）` } : plain(soil.no3n), badge: nBadge,
+              pdfJudge: nr.source === 'none' ? '' : `N ${nr.kg.toFixed(1)}kg差引` },
             { label: 'アンモニア態窒素 (mg/100g)', item: plain(soil.nh4n), badge: '' }
         ];
         document.getElementById('soilSummaryGrid').innerHTML = soilItems.map(s => `
@@ -1247,9 +1272,127 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('finalReportNotesText').textContent = specialNotesValue;
         reportNotesBlock.style.display = specialNotesValue ? 'block' : 'none';
 
+        // PDF用の表（A4縦1枚）。画面の設計書と同じ値・同じ文章から作る
+        lastPdfSheetHtml = buildPdfSheetHTML({
+            crop, fieldName, areaM2, field, result, fc, soilItems,
+            date: todayStamp(),
+            conditionsText: document.getElementById('reportConditionsText').textContent,
+            compostText: document.getElementById('finalReportCompostText').textContent,
+            limeText: document.getElementById('finalReportLimeText').textContent,
+            notes: specialNotesValue
+        });
+
         unlockStepTab(3);
         showStep(3);
     });
+
+    // ---------- PDF用の表（案A：縦・1段の帳票型） ----------
+    // 上から 基本情報 → 土壌分析（左右2列）→ 養分収支 → 使用する肥料 → 計算条件・堆肥・石灰苦土・特筆事項 の順。
+    // 794px（A4縦の96dpi相当）の幅で組み、出力時にA4用紙1枚へ収まるよう縮小する。
+    function buildPdfSheetHTML(r) {
+        const esc = escapeHtml;
+        const a = r.areaM2 / 100;
+
+        // 土壌分析：判定は画面のバッジと同じ基準（県基準 表7・表8、ECは藤原(2008)）
+        const judge = (s) => {
+            if (s.badge !== undefined) return { cls: '', text: s.pdfJudge || '' };
+            const state = Calc.compareRange(s.item.value, s.range);
+            if (state === 'ok') return { cls: 'pdf-ok', text: '✓適正' };
+            if (state === 'low') return { cls: 'pdf-low', text: '↓不足' };
+            if (state === 'high') return { cls: 'pdf-high', text: '↑過剰' };
+            return { cls: '', text: '' };
+        };
+        const soilCells = (s) => {
+            if (!s) return '<td class="pdf-lbl"></td><td></td><td></td><td></td>';
+            const j = judge(s);
+            return `<td class="pdf-lbl">${esc(s.label)}</td><td class="pdf-num">${esc(s.item.text)}</td>` +
+                `<td class="pdf-c">${esc(rangePlainText(s.range, s.unit) || '—')}</td><td class="pdf-c ${j.cls}">${esc(j.text)}</td>`;
+        };
+        const half = Math.ceil(r.soilItems.length / 2);
+        let soilRows = '';
+        for (let i = 0; i < half; i++) soilRows += `<tr>${soilCells(r.soilItems[i])}${soilCells(r.soilItems[i + half])}</tr>`;
+
+        // 養分収支：画面の「目標・残存・追加・施肥後」カードと同じ計算
+        const balRows = NUTRIENT_DEFS.map(def => {
+            const applied = r.fc.totals[def.key];
+            const b = calcFinalBalance(def.key, r.result, r.fc.scale, applied);
+            if (def.key === 'cao' || def.key === 'mgo') {
+                let diff;
+                if (!b.range) diff = '<span>判定不可（CEC不明）</span>';
+                else if (!isFinite(b.measured)) diff = '<span>判定不可（未測定）</span>';
+                else if (b.state === 'ok') diff = '<span class="pdf-ok">適正範囲内</span>';
+                else if (b.state === 'low') diff = `<span class="pdf-low">下限まで ${(b.range[0] - b.after).toFixed(0)}</span>`;
+                else diff = `<span class="pdf-high">上限を ${(b.after - b.range[1]).toFixed(0)} 超過</span>`;
+                return `<tr><td class="pdf-lbl">${def.label}</td><td class="pdf-c">mg/100g</td>` +
+                    `<td class="pdf-num">${b.range ? `${b.range[0]}〜${b.range[1]}` : '—'}</td>` +
+                    `<td class="pdf-num">${isFinite(b.measured) ? b.measured.toFixed(0) : '—'}</td>` +
+                    `<td class="pdf-num">+${b.addedMg.toFixed(1)}<small>（${applied.toFixed(1)}kg）</small></td>` +
+                    `<td class="pdf-num">${isFinite(b.after) ? b.after.toFixed(0) : '—'}</td><td class="pdf-c">${diff}</td></tr>`;
+            }
+            let diff;
+            if (b.target <= 0) diff = applied > 0 ? `<span class="pdf-high">基準なし（+${applied.toFixed(1)}）</span>` : '<span>基準なし</span>';
+            else if (b.diff >= 0.05) diff = `<span class="pdf-high">+${b.diff.toFixed(1)}</span>`;
+            else if (b.diff > -0.05) diff = '<span class="pdf-ok">過不足なし</span>';
+            else diff = `<span class="pdf-low">−${(-b.diff).toFixed(1)}</span>`;
+            return `<tr><td class="pdf-lbl">${def.label}</td><td class="pdf-c">kg</td>` +
+                `<td class="pdf-num">${b.target.toFixed(1)}</td><td class="pdf-num">${b.residual.toFixed(1)}</td>` +
+                `<td class="pdf-num">${applied.toFixed(1)}</td><td class="pdf-num">${b.after.toFixed(1)}</td><td class="pdf-c">${diff}</td></tr>`;
+        }).join('');
+
+        // 使用する肥料
+        const t = r.fc.totals;
+        const totalBags = r.fc.rows.reduce((sum, f) => sum + (f.bags || 0), 0);
+        const fertRows = r.fc.rows.map((f, i) => `<tr><td class="pdf-c">${i + 1}</td><td>${esc(f.name)}</td>` +
+            `<td class="pdf-num">${f.amount.toFixed(1)}</td><td class="pdf-c">${f.bags === null ? '—' : `${f.bags}袋`}</td>` +
+            [f.suppliedN, f.suppliedP, f.suppliedK, f.suppliedCaO, f.suppliedMgO].map(v => `<td class="pdf-num">${v.toFixed(1)}</td>`).join('') +
+            '</tr>').join('');
+
+        const box = (label, text) => text ? `<div class="pdf-box"><b>${label}：</b>${esc(text)}</div>` : '';
+        const fieldLine = (r.fieldName ? `${esc(r.fieldName)} ／ ` : '') + `作成日 ${r.date}`;
+
+        return `
+            <div class="pdf-title"><b>施肥設計書</b><span>${esc(cropLabel(r.crop))}<br>${fieldLine}</span></div>
+            <table class="pdf-t">
+                <tr><td class="pdf-lbl">作物</td><td>${esc(`${r.crop.emoji} ${cropLabel(r.crop)}`)}</td>
+                    <td class="pdf-lbl">圃場名</td><td>${esc(r.fieldName || '—')}</td>
+                    <td class="pdf-lbl">面積</td><td>${r.areaM2.toLocaleString('ja-JP', { maximumFractionDigits: 1 })}㎡（${a.toFixed(2)}a）</td></tr>
+                <tr><td class="pdf-lbl">土壌</td><td>${esc(r.field.soilType.name)}</td>
+                    <td class="pdf-lbl">作土深</td><td>${r.field.depth}cm（仮比重${r.field.bd}）</td>
+                    <td class="pdf-lbl">作成日</td><td>${r.date}</td></tr>
+            </table>
+            <div><div class="pdf-sec">土壌分析結果</div>
+                <table class="pdf-t pdf-soil">
+                    <colgroup>${'<col style="width:18%"><col style="width:12%"><col style="width:10%"><col style="width:10%">'.repeat(2)}</colgroup>
+                    <tr><th>項目</th><th>分析値</th><th>適正範囲</th><th>判定</th><th>項目</th><th>分析値</th><th>適正範囲</th><th>判定</th></tr>
+                    ${soilRows}
+                </table>
+            </div>
+            <div><div class="pdf-sec">養分収支（目標・残存・追加・施肥後）</div>
+                <table class="pdf-t">
+                    <tr><th>養分</th><th>単位</th><th>目標</th><th>残存<br>（土壌＋堆肥）</th><th>追加<br>（肥料）</th><th>施肥後</th><th>過不足</th></tr>
+                    ${balRows}
+                </table>
+            </div>
+            <div><div class="pdf-sec">使用する肥料</div>
+                <table class="pdf-t">
+                    <tr><th>No</th><th>肥料名</th><th>投入量<br>(kg)</th><th>袋数</th><th>N<br>(kg)</th><th>P2O5<br>(kg)</th><th>K2O<br>(kg)</th><th>CaO<br>(kg)</th><th>MgO<br>(kg)</th></tr>
+                    ${fertRows}
+                    <tr class="pdf-sum"><td class="pdf-c" colspan="2">合計</td><td class="pdf-num">${t.amount.toFixed(1)}</td><td class="pdf-c">${totalBags > 0 ? `${totalBags}袋` : '—'}</td>
+                        ${[t.n, t.p, t.k, t.cao, t.mgo].map(v => `<td class="pdf-num">${v.toFixed(1)}</td>`).join('')}</tr>
+                </table>
+            </div>
+            <div class="pdf-stack">
+                ${box('計算条件', r.conditionsText)}
+                ${box('堆肥', r.compostText)}
+                ${box('石灰・苦土', r.limeText)}
+                ${box('特筆事項', r.notes)}
+            </div>
+            <div class="pdf-foot">
+                <span>※ 埼玉県主要農作物施肥基準（令和7年）に基づく計算です。減肥した場合は生育状況を確認し、生育が劣る場合は追肥等で調整してください。</span>
+                <span>This project is licensed under the BSD 3-Clause License.<br>Copyright (c) 2026 y-ookuma</span>
+            </div>
+        `;
+    }
 
     // ---------- 結果の画像化（PNG・PDF共通、A4レイアウトに合わせて出力） ----------
     const A4_WIDTH_MM = 210;  // A4縦
@@ -1360,40 +1503,39 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     });
 
-    // ---------- PDF出力（A4サイズで、内容が1ページに収まらない場合は複数ページに分割） ----------
+    // ---------- PDF出力（表形式のPDF用の表を、A4縦1枚に収めて出力） ----------
+    const PDF_SHEET_WIDTH_PX = 794; // A4縦の幅（96dpi相当）。PDF用の表はこの幅で組む
     document.getElementById('exportPdfBtn').addEventListener('click', () => {
         if (typeof html2canvas === 'undefined' || typeof window.jspdf === 'undefined' || typeof window.jspdf.jsPDF === 'undefined') {
             alert('PDF出力機能の読み込みに失敗しました。通信環境をご確認のうえ再度お試しください。');
             return;
         }
-        generateA4ReportCanvas()
+        if (!lastPdfSheetHtml) {
+            alert('先に②で「施肥設計完了」を押してください。');
+            return;
+        }
+        const sheet = document.createElement('div');
+        sheet.className = 'pdf-sheet';
+        sheet.innerHTML = lastPdfSheetHtml;
+        document.body.appendChild(sheet);
+
+        const fontsReadyPromise = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
+        Promise.race([fontsReadyPromise, new Promise(resolve => setTimeout(resolve, 2000))])
+            .then(() => html2canvas(sheet, {
+                backgroundColor: '#FFFFFF',
+                width: PDF_SHEET_WIDTH_PX,
+                windowWidth: PDF_SHEET_WIDTH_PX,
+                scale: EXPORT_DPI / 96
+            }))
             .then(canvas => {
                 const { jsPDF } = window.jspdf;
                 const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
-                const pxPerMm = canvas.width / A4_WIDTH_MM;
-                const pageHeightPx = Math.floor(A4_HEIGHT_MM * pxPerMm);
-
-                let renderedPx = 0;
-                let pageIndex = 0;
-                while (renderedPx < canvas.height) {
-                    const sliceHeightPx = Math.min(pageHeightPx, canvas.height - renderedPx);
-
-                    const pageCanvas = document.createElement('canvas');
-                    pageCanvas.width = canvas.width;
-                    pageCanvas.height = sliceHeightPx;
-                    const pctx = pageCanvas.getContext('2d');
-                    pctx.fillStyle = '#FDFEFC';
-                    pctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
-                    pctx.drawImage(canvas, 0, renderedPx, canvas.width, sliceHeightPx, 0, 0, canvas.width, sliceHeightPx);
-
-                    const sliceHeightMm = sliceHeightPx / pxPerMm;
-                    if (pageIndex > 0) pdf.addPage();
-                    pdf.addImage(pageCanvas.toDataURL('image/png'), 'PNG', 0, 0, A4_WIDTH_MM, sliceHeightMm);
-
-                    renderedPx += sliceHeightPx;
-                    pageIndex++;
-                }
+                // 内容がA4の縦より長い場合（肥料8種類・特筆事項が長い等）は、縦横比を保ったまま1枚に収まるよう縮小する
+                const heightMm = canvas.height * A4_WIDTH_MM / canvas.width;
+                const fit = Math.min(1, A4_HEIGHT_MM / heightMm);
+                const w = A4_WIDTH_MM * fit;
+                pdf.addImage(canvas.toDataURL('image/png'), 'PNG', (A4_WIDTH_MM - w) / 2, 0, w, heightMm * fit);
 
                 const cropName = document.getElementById('reportCropName').textContent || 'result';
                 pdf.save(`施肥設計書_${sanitizeFilename(cropName)}.pdf`);
@@ -1401,6 +1543,9 @@ document.addEventListener('DOMContentLoaded', () => {
             .catch(err => {
                 console.error('PDF出力エラー:', err);
                 alert('PDFの生成に失敗しました。もう一度お試しください。');
+            })
+            .finally(() => {
+                if (sheet.parentNode) document.body.removeChild(sheet);
             });
     });
 
