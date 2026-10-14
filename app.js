@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const cropSelect = document.getElementById('cropSelect');
     let lastCalc = null;      // (1) 施肥計算をする、時点の情報
     let lastFertCalc = null;  // (2) 投入量を計算する、時点の情報
-    let lastPdfSheetHtml = ''; // (3) 施肥設計完了、時点のPDF用の表（A4縦1枚）
+    let lastReport = null;    // (3) 施肥設計完了、時点の設計書のデータ（PDF・Excel出力に使う）
     const customCropFields = document.getElementById('customCropFields');
     const customCropHint = document.getElementById('customCropHint');
 
@@ -1046,6 +1046,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 amount,
                 bagWeight,
                 bags: bagWeight > 0 ? Math.ceil(amount / bagWeight) : null,
+                pct: { n: pct('n'), p: pct('p'), k: pct('k'), cao: pct('cao'), mgo: pct('mgo') },
                 suppliedN: amount * (pct('n') / 100),
                 suppliedP: amount * (pct('p') / 100),
                 suppliedK: amount * (pct('k') / 100),
@@ -1294,19 +1295,46 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('finalReportNotesText').textContent = specialNotesValue;
         reportNotesBlock.style.display = specialNotesValue ? 'block' : 'none';
 
-        // PDF用の表（A4縦1枚）。画面の設計書と同じ値・同じ文章から作る
-        lastPdfSheetHtml = buildPdfSheetHTML({
+        // PDF・Excel出力用のデータ。画面の設計書と同じ値・同じ文章から作る
+        lastReport = {
             crop, ownerName, fieldName, areaM2, field, result, fc, soilItems,
             date: todayStamp(),
             conditionsText: document.getElementById('reportConditionsText').textContent,
             compostText: document.getElementById('finalReportCompostText').textContent,
             limeText: document.getElementById('finalReportLimeText').textContent,
             notes: specialNotesValue
-        });
+        };
 
+        if (section3.classList.contains('simple-mode')) renderSimpleReportView();
         unlockStepTab(3);
         showStep(3);
     });
+
+    // ---------- PDF・Excel共通：判定と過不足の文言 ----------
+    // 土壌分析の判定：画面のバッジと同じ基準（県基準 表7・表8、ECは藤原(2008)）。state は ok / low / high / ''
+    function reportSoilJudge(s) {
+        if (s.badge !== undefined) return { state: '', text: s.pdfJudge || '' };
+        const state = Calc.compareRange(s.item.value, s.range);
+        if (state === 'ok') return { state, text: '✓適正' };
+        if (state === 'low') return { state, text: '↓不足' };
+        if (state === 'high') return { state, text: '↑過剰' };
+        return { state: '', text: '' };
+    }
+
+    // 養分収支の過不足（b は calcFinalBalance の結果、applied は肥料からの追加量kg）
+    function reportBalanceDiff(key, b, applied) {
+        if (key === 'cao' || key === 'mgo') {
+            if (!b.range) return { state: '', text: '判定不可（CEC不明）' };
+            if (!isFinite(b.measured)) return { state: '', text: '判定不可（未測定）' };
+            if (b.state === 'ok') return { state: 'ok', text: '適正範囲内' };
+            if (b.state === 'low') return { state: 'low', text: `下限まで ${(b.range[0] - b.after).toFixed(0)}` };
+            return { state: 'high', text: `上限を ${(b.after - b.range[1]).toFixed(0)} 超過` };
+        }
+        if (b.target <= 0) return applied > 0 ? { state: 'high', text: `基準なし（+${applied.toFixed(1)}）` } : { state: '', text: '基準なし' };
+        if (b.diff >= 0.05) return { state: 'high', text: `+${b.diff.toFixed(1)}` };
+        if (b.diff > -0.05) return { state: 'ok', text: '過不足なし' };
+        return { state: 'low', text: `−${(-b.diff).toFixed(1)}` };
+    }
 
     // ---------- PDF用の表（案A：縦・1段の帳票型） ----------
     // 上から 基本情報 → 土壌分析（左右2列）→ 養分収支 → 使用する肥料 → 計算条件・堆肥・石灰苦土・特筆事項 の順。
@@ -1315,20 +1343,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const esc = escapeHtml;
         const a = r.areaM2 / 100;
 
-        // 土壌分析：判定は画面のバッジと同じ基準（県基準 表7・表8、ECは藤原(2008)）
-        const judge = (s) => {
-            if (s.badge !== undefined) return { cls: '', text: s.pdfJudge || '' };
-            const state = Calc.compareRange(s.item.value, s.range);
-            if (state === 'ok') return { cls: 'pdf-ok', text: '✓適正' };
-            if (state === 'low') return { cls: 'pdf-low', text: '↓不足' };
-            if (state === 'high') return { cls: 'pdf-high', text: '↑過剰' };
-            return { cls: '', text: '' };
-        };
+        const stateClass = (state) => (state ? `pdf-${state}` : '');
+
+        // 土壌分析
         const soilCells = (s) => {
             if (!s) return '<td class="pdf-lbl"></td><td></td><td></td><td></td>';
-            const j = judge(s);
+            const j = reportSoilJudge(s);
             return `<td class="pdf-lbl">${esc(s.label)}</td><td class="pdf-num">${esc(s.item.text)}</td>` +
-                `<td class="pdf-c">${esc(rangePlainText(s.range, s.unit) || '—')}</td><td class="pdf-c ${j.cls}">${esc(j.text)}</td>`;
+                `<td class="pdf-c">${esc(rangePlainText(s.range, s.unit) || '—')}</td><td class="pdf-c ${stateClass(j.state)}">${esc(j.text)}</td>`;
         };
         const half = Math.ceil(r.soilItems.length / 2);
         let soilRows = '';
@@ -1338,24 +1360,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const balRows = NUTRIENT_DEFS.map(def => {
             const applied = r.fc.totals[def.key];
             const b = calcFinalBalance(def.key, r.result, r.fc.scale, applied);
+            const d = reportBalanceDiff(def.key, b, applied);
+            const diff = `<span class="${stateClass(d.state)}">${d.text}</span>`;
             if (def.key === 'cao' || def.key === 'mgo') {
-                let diff;
-                if (!b.range) diff = '<span>判定不可（CEC不明）</span>';
-                else if (!isFinite(b.measured)) diff = '<span>判定不可（未測定）</span>';
-                else if (b.state === 'ok') diff = '<span class="pdf-ok">適正範囲内</span>';
-                else if (b.state === 'low') diff = `<span class="pdf-low">下限まで ${(b.range[0] - b.after).toFixed(0)}</span>`;
-                else diff = `<span class="pdf-high">上限を ${(b.after - b.range[1]).toFixed(0)} 超過</span>`;
                 return `<tr><td class="pdf-lbl">${def.label}</td><td class="pdf-c">mg/100g</td>` +
                     `<td class="pdf-num">${b.range ? `${b.range[0]}〜${b.range[1]}` : '—'}</td>` +
                     `<td class="pdf-num">${isFinite(b.measured) ? b.measured.toFixed(0) : '—'}</td>` +
                     `<td class="pdf-num">+${b.addedMg.toFixed(1)}<small>（${applied.toFixed(1)}kg）</small></td>` +
                     `<td class="pdf-num">${isFinite(b.after) ? b.after.toFixed(0) : '—'}</td><td class="pdf-c">${diff}</td></tr>`;
             }
-            let diff;
-            if (b.target <= 0) diff = applied > 0 ? `<span class="pdf-high">基準なし（+${applied.toFixed(1)}）</span>` : '<span>基準なし</span>';
-            else if (b.diff >= 0.05) diff = `<span class="pdf-high">+${b.diff.toFixed(1)}</span>`;
-            else if (b.diff > -0.05) diff = '<span class="pdf-ok">過不足なし</span>';
-            else diff = `<span class="pdf-low">−${(-b.diff).toFixed(1)}</span>`;
             return `<tr><td class="pdf-lbl">${def.label}</td><td class="pdf-c">kg</td>` +
                 `<td class="pdf-num">${b.target.toFixed(1)}</td><td class="pdf-num">${b.residual.toFixed(1)}</td>` +
                 `<td class="pdf-num">${applied.toFixed(1)}</td><td class="pdf-num">${b.after.toFixed(1)}</td><td class="pdf-c">${diff}</td></tr>`;
@@ -1415,6 +1428,23 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
     }
+
+    // ---------- 簡易結果表示（PDFと同じ表を画面に表示。もう一度押すと通常の表示に戻る） ----------
+    // 通常の設計書（#captureArea）は section3 の simple-mode クラスで隠す。
+    // 要素に直接 display:none を付けると、PNG出力で複製した設計書まで隠れてしまうため。
+    const section3 = document.getElementById('section3');
+    const simpleViewBtn = document.getElementById('simpleViewBtn');
+    function renderSimpleReportView() {
+        document.getElementById('simpleReportView').innerHTML =
+            lastReport ? `<div class="pdf-sheet pdf-sheet-inline">${buildPdfSheetHTML(lastReport)}</div>` : '';
+    }
+    simpleViewBtn.addEventListener('click', () => {
+        const on = !section3.classList.contains('simple-mode');
+        if (on) renderSimpleReportView();
+        section3.classList.toggle('simple-mode', on);
+        simpleViewBtn.setAttribute('aria-pressed', String(on));
+        simpleViewBtn.textContent = on ? '🔙 通常表示に戻す' : '📋 簡易結果表示';
+    });
 
     // ---------- 結果の画像化（PNG・PDF共通、A4レイアウトに合わせて出力） ----------
     const A4_WIDTH_MM = 210;  // A4縦
@@ -1532,13 +1562,13 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('PDF出力機能の読み込みに失敗しました。通信環境をご確認のうえ再度お試しください。');
             return;
         }
-        if (!lastPdfSheetHtml) {
+        if (!lastReport) {
             alert('先に②で「施肥設計完了」を押してください。');
             return;
         }
         const sheet = document.createElement('div');
         sheet.className = 'pdf-sheet';
-        sheet.innerHTML = lastPdfSheetHtml;
+        sheet.innerHTML = buildPdfSheetHTML(lastReport);
         document.body.appendChild(sheet);
 
         const fontsReadyPromise = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
@@ -1568,6 +1598,207 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .finally(() => {
                 if (sheet.parentNode) document.body.removeChild(sheet);
+            });
+    });
+
+    // ---------- Excel出力（PDFと同じ並び：基本情報 → 土壌分析 → 養分収支 → 使用する肥料 → 文章欄） ----------
+    // 数値はセルに数値で入れ、肥料の供給量・袋数・合計は式にする（投入量や成分を書き換えると再計算される）。
+    // 印刷はA4縦1枚に収まるよう設定する。
+    function buildReportWorkbook(r) {
+        const wb = new ExcelJS.Workbook();
+        wb.creator = '施肥設計計算アプリ';
+        wb.created = new Date();
+        const ws = wb.addWorksheet('施肥設計書', {
+            pageSetup: {
+                paperSize: 9, orientation: 'portrait', fitToPage: true, fitToWidth: 1, fitToHeight: 1,
+                margins: { left: 0.4, right: 0.4, top: 0.5, bottom: 0.5, header: 0.2, footer: 0.2 }
+            }
+        });
+        ws.columns = [6, 22, 9, 11, 13, 9, 9, 9, 10, 8, 9, 9, 9, 9, 9].map(width => ({ width }));
+
+        const FONT = '游ゴシック';
+        const GREEN = 'FF2E6E45';
+        const STATE_COLOR = { ok: 'FF2E7D4A', low: 'FFC0392B', high: 'FF2F6FB0' };
+        const BORDER = { style: 'thin', color: { argb: 'FF9AA59A' } };
+        const fill = (argb) => ({ type: 'pattern', pattern: 'solid', fgColor: { argb } });
+        ws.properties.defaultRowHeight = 18;
+
+        // セルに値と書式を入れる。range（例 'B3:D3'）を渡すと結合する
+        const put = (addr, value, opt = {}) => {
+            if (opt.merge) ws.mergeCells(opt.merge);
+            const cell = ws.getCell(addr);
+            cell.value = value;
+            cell.font = { name: FONT, size: opt.size || 10, bold: !!opt.bold, color: { argb: opt.color || 'FF222222' } };
+            cell.alignment = { vertical: 'middle', horizontal: opt.align || 'left', wrapText: !!opt.wrap };
+            if (opt.fmt) cell.numFmt = opt.fmt;
+            if (opt.fill) cell.fill = fill(opt.fill);
+            if (opt.border !== false) {
+                const cells = opt.merge ? expandRange(opt.merge) : [addr];
+                cells.forEach(a => { ws.getCell(a).border = { top: BORDER, left: BORDER, bottom: BORDER, right: BORDER }; });
+            }
+            return cell;
+        };
+        // 'B3:D4' → ['B3','C3','D3','B4',...]
+        function expandRange(range) {
+            const [from, to] = range.split(':').map(a => ({ col: ws.getCell(a).col, row: ws.getCell(a).row }));
+            const list = [];
+            for (let row = from.row; row <= to.row; row++) {
+                for (let col = from.col; col <= to.col; col++) list.push(ws.getCell(row, col).address);
+            }
+            return list;
+        }
+        const label = (addr, text, merge) => put(addr, text, { merge, fill: 'FFF4F7F2' });
+        const head = (addr, text, merge) => put(addr, text, { merge, bold: true, fill: 'FFE4EFE6', align: 'center', wrap: true });
+        const section = (row, text) => {
+            put(`A${row}`, text, { merge: `A${row}:O${row}`, bold: true, size: 11, color: GREEN, border: false });
+            ws.getCell(`A${row}`).border = { bottom: { style: 'medium', color: { argb: GREEN } } };
+        };
+        const num = (v) => (isFinite(v) ? v : '—');
+
+        // 見出し
+        put('A1', '施肥設計書', { merge: 'A1:F1', bold: true, size: 18, border: false });
+        put('J1', [r.ownerName, r.fieldName, `作成日 ${r.date}`].filter(Boolean).join(' ／ '), { merge: 'J1:O1', align: 'right', border: false });
+        ws.getRow(1).height = 30;
+        ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1', 'K1', 'L1', 'M1', 'N1', 'O1']
+            .forEach(a => { ws.getCell(a).border = { bottom: { style: 'medium', color: { argb: GREEN } } }; });
+
+        // 基本情報
+        label('A3', '名前'); put('B3', r.ownerName || '—', { merge: 'B3:D3' });
+        label('E3', '圃場名'); put('F3', r.fieldName || '—', { merge: 'F3:H3' });
+        label('I3', '面積(㎡)'); put('J3', r.areaM2, { fmt: '#,##0.0', align: 'right' });
+        label('K3', '面積(a)'); put('L3', r.areaM2 / 100, { fmt: '0.00', align: 'right' });
+        label('A4', '作物'); put('B4', `${r.crop.emoji} ${cropLabel(r.crop)}`, { merge: 'B4:D4' });
+        label('E4', '土壌'); put('F4', r.field.soilType.name, { merge: 'F4:H4' });
+        label('I4', '作土深(cm)'); put('J4', r.field.depth, { align: 'right' });
+        label('K4', '仮比重'); put('L4', r.field.bd, { fmt: '0.00', align: 'right' });
+
+        // 土壌分析結果
+        let row = 6;
+        section(row++, '土壌分析結果');
+        head(`A${row}`, '項目', `A${row}:B${row}`); head(`C${row}`, '分析値'); head(`D${row}`, '適正範囲');
+        head(`E${row}`, '判定'); head(`F${row}`, '備考', `F${row}:H${row}`);
+        row++;
+        r.soilItems.forEach(s => {
+            const shown = parseFloat(s.item.text);
+            const note = (s.item.text.match(/（(.+)）$/) || [])[1] || '';
+            const j = reportSoilJudge(s);
+            label(`A${row}`, s.label, `A${row}:B${row}`);
+            put(`C${row}`, num(shown), { align: 'right' });
+            put(`D${row}`, rangePlainText(s.range, s.unit) || '—', { align: 'center' });
+            put(`E${row}`, j.text, { align: 'center', bold: !!j.state, color: STATE_COLOR[j.state] });
+            put(`F${row}`, note, { merge: `F${row}:H${row}` });
+            row++;
+        });
+
+        // 養分収支
+        row++;
+        section(row++, '養分収支（目標・残存・追加・施肥後）');
+        head(`A${row}`, '養分', `A${row}:B${row}`); head(`C${row}`, '単位'); head(`D${row}`, '目標');
+        head(`E${row}`, '残存\n（土壌＋堆肥）'); head(`F${row}`, '追加\n（肥料）'); head(`G${row}`, '施肥後');
+        head(`H${row}`, '過不足', `H${row}:I${row}`); head(`J${row}`, '肥料の追加量(kg)', `J${row}:K${row}`);
+        ws.getRow(row).height = 36; // 見出しは2行（游ゴシックは1行約17pt）
+        row++;
+        NUTRIENT_DEFS.forEach(def => {
+            const applied = r.fc.totals[def.key];
+            const b = calcFinalBalance(def.key, r.result, r.fc.scale, applied);
+            const d = reportBalanceDiff(def.key, b, applied);
+            const isBase = def.key === 'cao' || def.key === 'mgo';
+            label(`A${row}`, def.label, `A${row}:B${row}`);
+            put(`C${row}`, isBase ? 'mg/100g' : 'kg', { align: 'center' });
+            if (isBase) {
+                put(`D${row}`, b.range ? `${b.range[0]}〜${b.range[1]}` : '—', { align: 'center' });
+                put(`E${row}`, num(b.measured), { fmt: '0', align: 'right' });
+                put(`F${row}`, b.addedMg, { fmt: '+0.0', align: 'right' });
+                put(`G${row}`, num(b.after), { fmt: '0', align: 'right' });
+            } else {
+                put(`D${row}`, b.target, { fmt: '0.0', align: 'right' });
+                put(`E${row}`, b.residual, { fmt: '0.0', align: 'right' });
+                put(`F${row}`, applied, { fmt: '0.0', align: 'right' });
+                put(`G${row}`, b.after, { fmt: '0.0', align: 'right' });
+            }
+            put(`H${row}`, d.text, { merge: `H${row}:I${row}`, align: 'center', bold: !!d.state, color: STATE_COLOR[d.state] });
+            put(`J${row}`, applied, { merge: `J${row}:K${row}`, fmt: '0.0', align: 'right' });
+            row++;
+        });
+
+        // 使用する肥料（供給量・袋数・合計は式）
+        row++;
+        section(row++, '使用する肥料');
+        ['No', '肥料名', 'N(%)', 'P2O5(%)', 'K2O(%)', 'CaO(%)', 'MgO(%)', '1袋の\n重量(kg)', '投入量(kg)', '袋数',
+            'N(kg)', 'P2O5\n(kg)', 'K2O(kg)', 'CaO(kg)', 'MgO(kg)']
+            .forEach((text, i) => head(ws.getCell(row, i + 1).address, text));
+        ws.getRow(row).height = 36; // 見出しは2行（游ゴシックは1行約17pt）
+        row++;
+        const firstFertRow = row;
+        r.fc.rows.forEach((f, i) => {
+            put(`A${row}`, i + 1, { align: 'center' });
+            put(`B${row}`, f.name);
+            ['n', 'p', 'k', 'cao', 'mgo'].forEach((k, j) => put(ws.getCell(row, 3 + j).address, f.pct[k], { fmt: '0.0', align: 'right' }));
+            put(`H${row}`, f.bagWeight || null, { fmt: '0.0', align: 'right' });
+            put(`I${row}`, f.amount, { fmt: '0.0', align: 'right' });
+            put(`J${row}`, { formula: `IF(H${row}>0,ROUNDUP(I${row}/H${row},0),"")`, result: f.bags === null ? '' : f.bags }, { align: 'right' });
+            [f.suppliedN, f.suppliedP, f.suppliedK, f.suppliedCaO, f.suppliedMgO].forEach((v, j) => {
+                const pctCol = String.fromCharCode(67 + j); // C〜G
+                put(ws.getCell(row, 11 + j).address, { formula: `I${row}*${pctCol}${row}/100`, result: v }, { fmt: '0.0', align: 'right' });
+            });
+            row++;
+        });
+        const lastFertRow = row - 1;
+        const t = r.fc.totals;
+        const sum = (col, result) => ({ formula: `SUM(${col}${firstFertRow}:${col}${lastFertRow})`, result });
+        put(`A${row}`, '合計', { merge: `A${row}:H${row}`, bold: true, fill: 'FFF4F7F2', align: 'center' });
+        put(`I${row}`, sum('I', t.amount), { bold: true, fill: 'FFF4F7F2', fmt: '0.0', align: 'right' });
+        put(`J${row}`, sum('J', r.fc.rows.reduce((s, f) => s + (f.bags || 0), 0)), { bold: true, fill: 'FFF4F7F2', align: 'right' });
+        [['K', t.n], ['L', t.p], ['M', t.k], ['N', t.cao], ['O', t.mgo]]
+            .forEach(([col, v]) => put(`${col}${row}`, sum(col, v), { bold: true, fill: 'FFF4F7F2', fmt: '0.0', align: 'right' }));
+        row += 2;
+
+        // 文章欄（計算条件・堆肥・石灰苦土・特筆事項）。行の高さは文字数から見積もる
+        [['計算条件', r.conditionsText], ['堆肥', r.compostText], ['石灰・苦土', r.limeText], ['特筆事項', r.notes]]
+            .filter(([, text]) => text)
+            .forEach(([title, text]) => {
+                label(`A${row}`, title, `A${row}:B${row}`);
+                ws.getCell(`A${row}`).font = { name: FONT, size: 10, bold: true };
+                put(`C${row}`, text, { merge: `C${row}:O${row}`, wrap: true });
+                ws.getRow(row).height = Math.max(20, Math.ceil(text.length / 48) * 17 + 6); // C〜O列は全角約50字で折り返す
+                row++;
+            });
+
+        row++;
+        put(`A${row}`, '※ 埼玉県主要農作物施肥基準（令和7年）に基づく計算です。減肥した場合は生育状況を確認し、生育が劣る場合は追肥等で調整してください。',
+            { merge: `A${row}:O${row}`, size: 8, color: 'FF555555', border: false, wrap: true });
+        ws.getRow(row).height = 24;
+        row++;
+        put(`A${row}`, 'This project is licensed under the BSD 3-Clause License. Copyright (c) 2026 y-ookuma',
+            { merge: `A${row}:O${row}`, size: 8, color: 'FF555555', border: false, align: 'right' });
+
+        ws.pageSetup.printArea = `A1:O${row}`;
+        return wb;
+    }
+
+    document.getElementById('exportExcelBtn').addEventListener('click', () => {
+        if (typeof ExcelJS === 'undefined') {
+            alert('Excel出力機能の読み込みに失敗しました。通信環境をご確認のうえ再度お試しください。');
+            return;
+        }
+        if (!lastReport) {
+            alert('先に②で「施肥設計完了」を押してください。');
+            return;
+        }
+        buildReportWorkbook(lastReport).xlsx.writeBuffer()
+            .then(buffer => {
+                const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                const cropName = document.getElementById('reportCropName').textContent || 'result';
+                link.download = `施肥設計書_${sanitizeFilename(cropName)}.xlsx`;
+                link.href = url;
+                link.click();
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
+            })
+            .catch(err => {
+                console.error('Excel出力エラー:', err);
+                alert('Excelの生成に失敗しました。もう一度お試しください。');
             });
     });
 

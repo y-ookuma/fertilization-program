@@ -6,7 +6,7 @@
 
 - `saitama-data.js`：基準データ（`window.FERT_DATA`）。数値はすべて出典資料からの転記で、各データに出典ページを書いてある。
 - `calc.js`：計算ロジック（`window.FertCalc`）。DOMに依存しない純粋関数だけを置く。
-- `app.js`：画面の操作・表示、保存/復元、肥料CSV読み込み、PNG/PDF出力。計算は `FertCalc` を呼ぶだけにする。
+- `app.js`：画面の操作・表示、保存/復元、肥料CSV読み込み、PNG/PDF/Excel出力（Excelは ExcelJS）。計算は `FertCalc` を呼ぶだけにする。
 - `index.html` の読み込み順：`saitama-data.js` → `calc.js` → `app.js`。
 - `crops.json`：`FERT_DATA.crops` の参照用コピー。アプリは使わない。作物データを変えたら作り直す（QuickJSで `FERT_DATA.crops` を書き出す）。
 - `README.md`：アプリ内の「README」ボタンから表示される利用者向け説明。計算式と出典の章がある。計算方法を変えたら必ず更新する。

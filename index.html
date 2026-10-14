@@ -340,10 +340,15 @@
                     <span id="reportCropName" class="crop-name">-</span>
                 </div>
                 <div class="result-header-actions">
+                    <button id="simpleViewBtn" class="btn-secondary" aria-pressed="false">📋 簡易結果表示</button>
                     <button id="exportPngBtn" class="btn-secondary">🖼️ 結果をPNG保存</button>
                     <button id="exportPdfBtn" class="btn-secondary">📄 結果をPDF保存</button>
+                    <button id="exportExcelBtn" class="btn-secondary">📊 結果をEXCEL保存</button>
                 </div>
             </div>
+
+            <!-- 簡易結果表示：PDFと同じ表（app.js の buildPdfSheetHTML）を画面に表示する -->
+            <div id="simpleReportView" class="simple-report-view"></div>
 
             <div id="captureArea" class="capture-area">
                 <div class="capture-title">
@@ -420,7 +425,7 @@
                 <li><strong>② 設計量の確認:</strong> 「施肥基準 − 土壌・堆肥による調整 ＝ 設計量」がカードで表示されます。窒素は無機態窒素の3mg/100gを超える分、リン酸は有効態リン酸に応じた減肥率、加里はCEC別の適正上限＋10mgを超える分を差し引きます。石灰・苦土はCEC別の適正範囲の下限までの不足量です。</li>
                 <li><strong>⑤ 圃場・⑥ 使用する肥料:</strong> 名前・圃場名と面積を入力し、使う肥料（最大8種類）の成分・袋の重さ・投入量を入力して「投入量を計算する」を押すと、目標・残存（土壌＋堆肥）・追加（肥料）・施肥後（残存＋追加）と目標との過不足、袋数が表示されます。「📂 肥料一覧CSVを読み込む」で肥料名から成分を自動入力できます。各行の「▲ 上へ」「▼ 下へ」で行を入れ替え、「🗑 削除」でその行の入力を消去できます。</li>
                 <li><strong>特筆事項:</strong> 前作の残肥や排水の状態など、数値にしにくいことを400文字まで記入できます。施肥設計書にも載ります。</li>
-                <li><strong>③ 施肥設計書:</strong> 「施肥設計完了」を押すと、土壌分析結果（県基準の適正範囲との比較）、計算条件、設計量の内訳、投入量、使用する肥料、堆肥、石灰・苦土の補正がまとまります。PNGは画面の設計書をA4幅の画像で、PDFは表形式でA4縦1枚にまとめて保存できます。</li>
+                <li><strong>③ 施肥設計書:</strong> 「施肥設計完了」を押すと、土壌分析結果（県基準の適正範囲との比較）、計算条件、設計量の内訳、投入量、使用する肥料、堆肥、石灰・苦土の補正がまとまります。「📋 簡易結果表示」で画面をPDFと同じ表形式に切り替えられます。PNGは通常の表示の設計書をA4幅の画像で、PDFは表形式でA4縦1枚にまとめて、EXCELはPDFと同じ並びの表（肥料の供給量・合計は式）で保存できます。</li>
                 <li><strong>作物別施肥基準一覧:</strong> ヘッダーのボタンで、登録している作物・作型の基肥と合計の施肥量、出典ページを一覧できます。</li>
                 <li><strong>パラメータの保存・復元:</strong> 作物・土壌・堆肥・面積・肥料・特筆事項を.jsonファイルに保存・復元できます。旧バージョンで保存したファイルも読み込めます（作物は対応する作型に読み替えます）。</li>
             </ol>
@@ -448,6 +453,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
     <script src="saitama-data.js"></script>
     <script src="calc.js"></script>
