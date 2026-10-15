@@ -6,8 +6,9 @@
 
 - `saitama-data.js`：基準データ（`window.FERT_DATA`）。数値はすべて出典資料からの転記で、各データに出典ページを書いてある。
 - `calc.js`：計算ロジック（`window.FertCalc`）。DOMに依存しない純粋関数だけを置く。
-- `app.js`：画面の操作・表示、保存/復元、肥料CSV読み込み、PNG/PDF/Excel出力（Excelは ExcelJS）。計算は `FertCalc` を呼ぶだけにする。
-- `index.html` の読み込み順：`saitama-data.js` → `calc.js` → `app.js`。
+- `soil-reader.js`：写真から土壌分析値を読み取るための定義（`window.SoilReader`）。12項目、OCR文字の解析、Claude APIへの指示文と返事のJSONスキーマ。DOMに依存しない。
+- `app.js`：画面の操作・表示、保存/復元、肥料CSV読み込み、写真からの読み取り（Claude API は公式SDKをCDNから、OCRは Tesseract.js。どちらも使うときだけ読み込む）、PNG/PDF/Excel出力（Excelは ExcelJS）。計算は `FertCalc` を呼ぶだけにする。
+- `index.html` の読み込み順：`saitama-data.js` → `calc.js` → `soil-reader.js` → `app.js`。
 - `crops.json`：`FERT_DATA.crops` の参照用コピー。アプリは使わない。作物データを変えたら作り直す（QuickJSで `FERT_DATA.crops` を書き出す）。
 - `README.md`：アプリ内の「README」ボタンから表示される利用者向け説明。計算式と出典の章がある。計算方法を変えたら必ず更新する。
 
@@ -18,7 +19,7 @@ pip install quickjs
 python tests/run_tests.py
 ```
 
-- Node.js は入っていない。テストは Python から QuickJS で `saitama-data.js`・`calc.js`・`tests/calc.test.js` を実行する。
+- Node.js は入っていない。テストは Python から QuickJS で `saitama-data.js`・`calc.js`・`soil-reader.js`・`tests/calc.test.js`・`tests/soil-reader.test.js` を実行する。
 - テストの期待値は出典の計算例そのもの（県基準の窒素3.3kg・リン酸10.8kg・加里6kg、青森マニュアルの石灰45.5kg、表18の堆肥の有効成分）。期待値を計算結果に合わせて書き換えない。
 - 画面の確認は、Playwright からローカルの Edge を使う（`p.chromium.launch(channel='msedge')`）。`python -m http.server` で配信して操作する。
 

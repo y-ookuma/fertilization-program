@@ -1205,3 +1205,29 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus {
 }
 .pdf-sheet-inline .pdf-foot { margin-top: 8px; }
 #simpleViewBtn[aria-pressed="true"] { background: var(--green); color: #fff; border-color: var(--green); }
+
+/* ---------- 写真から読み込む（土壌分析結果票） ---------- */
+.photo-read-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 4px 0 6px; }
+.photo-read-notice { font-size: 0.988rem; font-weight: 700; color: var(--green-deep); }
+.photo-step-title { font-size: 1.17rem; margin: 20px 0 8px; color: var(--green-deep); }
+.photo-methods { display: flex; flex-direction: column; gap: 8px; }
+.photo-method, .photo-check { display: flex; gap: 8px; align-items: flex-start; font-size: 1.04rem; line-height: 1.55; cursor: pointer; }
+.photo-method input, .photo-check input { margin-top: 0.35em; flex-shrink: 0; }
+.photo-key-area { margin-top: 12px; padding: 12px 14px; background: var(--stone-tint); border-radius: 12px; display: flex; flex-direction: column; gap: 8px; }
+.photo-key-area label[for] { font-weight: 700; font-size: 1.04rem; color: var(--ink-soft); }
+.photo-key-area .field-hint { margin: 0; }
+.photo-buttons { display: flex; flex-wrap: wrap; gap: 10px; }
+.photo-preview { display: block; max-width: 100%; max-height: 280px; margin: 10px auto 0; border: 1px solid var(--line); border-radius: 8px; }
+.photo-read-action { margin-top: 16px; }
+.photo-status { min-height: 1.4em; margin: 10px 0 0; font-weight: 700; color: var(--ink-soft); text-align: center; }
+.photo-status.is-error { color: var(--red); }
+.photo-read-sample { margin: 4px 0 8px; font-size: 1.04rem; }
+.photo-result-table td { vertical-align: middle; }
+.photo-result-table input[type="number"] { width: 7.5em; }
+.photo-result-table .photo-note { font-size: 0.936rem; color: var(--ink-soft); min-width: 10em; }
+.photo-result-table .photo-current { color: var(--ink-soft); text-align: right; white-space: nowrap; }
+.photo-ocr-raw { margin-top: 10px; }
+.photo-ocr-raw pre { max-height: 200px; overflow: auto; white-space: pre-wrap; background: var(--stone-tint); padding: 8px; border-radius: 8px; font-size: 0.884rem; }
+.photo-result-table .photo-use { text-align: center; }
+#photoReadModal [hidden] { display: none !important; } /* display を指定したクラスより hidden を優先する */
+.photo-result-table td:nth-child(2) { text-align: left; white-space: nowrap; }

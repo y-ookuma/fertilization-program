@@ -1,4 +1,4 @@
-"""calc.js のテストを QuickJS で実行する（Node.js 不要）。
+"""calc.js・soil-reader.js のテストを QuickJS で実行する（Node.js 不要）。
 
 使い方:
     pip install quickjs
@@ -11,7 +11,7 @@ import sys
 import quickjs
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-FILES = ["saitama-data.js", "calc.js", "tests/calc.test.js"]
+FILES = ["saitama-data.js", "calc.js", "soil-reader.js", "tests/calc.test.js", "tests/soil-reader.test.js"]
 
 
 def main() -> int:

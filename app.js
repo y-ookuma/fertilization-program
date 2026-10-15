@@ -1802,6 +1802,253 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     });
 
+    // ---------- 写真から読み込む（③ 土壌分析結果入力の12項目） ----------
+    // 読み取り方法は2つ。どちらも結果はいったん確認表に出し、利用者が確かめてから入力欄に反映する。
+    //   claude … Claude API（利用者自身のAPIキー）。公式SDKを使うときだけCDNから読み込む
+    //   ocr    … Tesseract.js（ブラウザ内で文字認識）。項目名と同じ行の数値を SoilReader.parseOcrText で拾う
+    const ANTHROPIC_SDK_URL = 'https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@0.131.0/+esm';
+    const TESSERACT_URL = 'https://cdn.jsdelivr.net/npm/tesseract.js@7.0.0/dist/tesseract.min.js';
+    const CLAUDE_MODEL = 'claude-opus-5-5';
+    const API_KEY_STORAGE = 'fertilizationProgram.anthropicApiKey';
+    const PHOTO_MAX_SIDE = 1600; // Claudeに送る画像の長辺(px)。結果票の文字が読める大きさで、送る量を抑える
+
+    const photoModal = document.getElementById('photoReadModal');
+    const photoPreview = document.getElementById('photoPreview');
+    const photoReadBtn = document.getElementById('photoReadBtn');
+    const photoStatus = document.getElementById('photoReadStatus');
+    const apiKeyInput = document.getElementById('anthropicApiKey');
+    const rememberApiKey = document.getElementById('rememberApiKey');
+    let photoFile = null;
+    let photoPreviewUrl = '';
+
+    const photoMethod = () => document.querySelector('input[name="photoMethod"]:checked').value;
+    function setPhotoStatus(text, isError) {
+        photoStatus.textContent = text;
+        photoStatus.classList.toggle('is-error', !!isError);
+    }
+    function updatePhotoMethodView() {
+        document.getElementById('claudeKeyArea').hidden = photoMethod() !== 'claude';
+    }
+
+    // APIキーは「保存する」にチェックしたときだけ、このブラウザ（localStorage）に置く
+    function loadSavedApiKey() {
+        try {
+            const saved = localStorage.getItem(API_KEY_STORAGE);
+            if (saved) { apiKeyInput.value = saved; rememberApiKey.checked = true; }
+        } catch (e) { /* 保存が使えない環境では毎回入力してもらう */ }
+    }
+    function storeApiKey() {
+        try {
+            if (rememberApiKey.checked && apiKeyInput.value.trim()) localStorage.setItem(API_KEY_STORAGE, apiKeyInput.value.trim());
+            else localStorage.removeItem(API_KEY_STORAGE);
+        } catch (e) { /* 保存できなくても読み取りは続ける */ }
+    }
+
+    document.getElementById('photoReadOpenBtn').addEventListener('click', () => {
+        loadSavedApiKey();
+        updatePhotoMethodView();
+        photoModal.style.display = 'block';
+    });
+    document.getElementById('closePhotoReadModal').addEventListener('click', () => { photoModal.style.display = 'none'; });
+    window.addEventListener('click', (e) => { if (e.target === photoModal) photoModal.style.display = 'none'; });
+    document.querySelectorAll('input[name="photoMethod"]').forEach(r => r.addEventListener('change', updatePhotoMethodView));
+    rememberApiKey.addEventListener('change', storeApiKey);
+
+    // 写真を選ぶ（カメラ／画像ファイル）
+    const photoCameraInput = document.getElementById('photoCameraInput');
+    const photoFileInput = document.getElementById('photoFileInput');
+    document.getElementById('photoCameraBtn').addEventListener('click', () => photoCameraInput.click());
+    document.getElementById('photoFileBtn').addEventListener('click', () => photoFileInput.click());
+    [photoCameraInput, photoFileInput].forEach(input => input.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        e.target.value = '';
+        if (!file) return;
+        photoFile = file;
+        if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl);
+        photoPreviewUrl = URL.createObjectURL(file);
+        photoPreview.src = photoPreviewUrl;
+        photoPreview.hidden = false;
+        photoReadBtn.disabled = false;
+        document.getElementById('photoReadResult').hidden = true;
+        setPhotoStatus('');
+    }));
+
+    // 写真を長辺 PHOTO_MAX_SIDE px のJPEGに縮め、base64（data: を除いた部分）で返す
+    function photoToJpegBase64(file) {
+        return new Promise((resolve, reject) => {
+            const url = URL.createObjectURL(file);
+            const img = new Image();
+            img.onload = () => {
+                const scale = Math.min(1, PHOTO_MAX_SIDE / Math.max(img.naturalWidth, img.naturalHeight));
+                const canvas = document.createElement('canvas');
+                canvas.width = Math.round(img.naturalWidth * scale);
+                canvas.height = Math.round(img.naturalHeight * scale);
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#FFFFFF';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                URL.revokeObjectURL(url);
+                resolve(canvas.toDataURL('image/jpeg', 0.9).split(',')[1]);
+            };
+            img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('画像を開けませんでした。JPEGかPNGの画像を選んでください。')); };
+            img.src = url;
+        });
+    }
+
+    let anthropicSdkPromise = null;
+    function loadAnthropicSdk() {
+        if (!anthropicSdkPromise) {
+            anthropicSdkPromise = import(ANTHROPIC_SDK_URL).then(m => m.default)
+                .catch(err => { anthropicSdkPromise = null; throw err; });
+        }
+        return anthropicSdkPromise;
+    }
+
+    // Claude API で読み取る。返事の形は SoilReader.CLAUDE_SCHEMA（構造化出力）で決めてある。
+    // 安全上の理由で断られた場合に備え、サーバー側の代替モデル（fallbacks: 'default'）を有効にしている。
+    async function readPhotoWithClaude(apiKey, file) {
+        const [Anthropic, base64] = await Promise.all([loadAnthropicSdk(), photoToJpegBase64(file)]);
+        const client = new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
+        let response;
+        try {
+            response = await client.beta.messages.create({
+                model: CLAUDE_MODEL,
+                max_tokens: 16000,
+                betas: ['server-side-fallback-2026-07-01'],
+                fallbacks: 'default',
+                output_config: {
+                    effort: 'medium',
+                    format: { type: 'json_schema', schema: SoilReader.CLAUDE_SCHEMA }
+                },
+                messages: [{
+                    role: 'user',
+                    content: [
+                        { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: base64 } },
+                        { type: 'text', text: SoilReader.CLAUDE_PROMPT }
+                    ]
+                }]
+            });
+        } catch (err) {
+            if (err instanceof Anthropic.AuthenticationError) throw new Error('APIキーが正しくありません。キーを確かめてください。');
+            if (err instanceof Anthropic.PermissionDeniedError) throw new Error('このAPIキーでは利用できません（権限または残高をご確認ください）。');
+            if (err instanceof Anthropic.RateLimitError) throw new Error('利用の上限に達しました。しばらく待ってからもう一度お試しください。');
+            if (err instanceof Anthropic.BadRequestError) throw new Error(`リクエストが受け付けられませんでした：${err.message}`);
+            if (err instanceof Anthropic.APIConnectionError) throw new Error('Anthropic に接続できませんでした。通信環境をご確認ください。');
+            if (err instanceof Anthropic.APIError) throw new Error(`APIエラー（${err.status}）：${err.message}`);
+            throw err;
+        }
+        if (response.stop_reason === 'refusal') throw new Error('この画像は読み取りを断られました。別の写真でお試しください。');
+        if (response.stop_reason === 'max_tokens') throw new Error('読み取りの途中で打ち切られました。もう一度お試しください。');
+        const text = response.content.filter(b => b.type === 'text').map(b => b.text).join('');
+        return Object.assign(SoilReader.normalizeClaudeResult(JSON.parse(text)), { raw: '' });
+    }
+
+    let tesseractPromise = null;
+    function loadTesseract() {
+        if (!tesseractPromise) {
+            tesseractPromise = new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = TESSERACT_URL;
+                script.onload = () => resolve(window.Tesseract);
+                script.onerror = () => { tesseractPromise = null; reject(new Error('文字認識の機能を読み込めませんでした。通信環境をご確認ください。')); };
+                document.head.appendChild(script);
+            });
+        }
+        return tesseractPromise;
+    }
+
+    // ブラウザ内OCRで読み取る（日本語＋英数字）。値の対応付けは SoilReader.parseOcrText
+    async function readPhotoWithOcr(file) {
+        const Tesseract = await loadTesseract();
+        const worker = await Tesseract.createWorker('jpn+eng', 1, {
+            logger: (m) => {
+                if (m.status === 'recognizing text') setPhotoStatus(`文字を認識しています… ${Math.round(m.progress * 100)}%`);
+                else if (m.status) setPhotoStatus('文字認識の準備をしています…（初回は時間がかかります）');
+            }
+        });
+        try {
+            const { data } = await worker.recognize(file);
+            const found = SoilReader.parseOcrText(data.text);
+            const values = {};
+            Object.keys(found).forEach(k => {
+                values[k] = { value: found[k].value, note: found[k].note || `認識した行：${found[k].line}` };
+            });
+            return { values, sample: '', warnings: '', raw: data.text };
+        } finally {
+            await worker.terminate();
+        }
+    }
+
+    photoReadBtn.addEventListener('click', async () => {
+        if (!photoFile) return;
+        const method = photoMethod();
+        const apiKey = apiKeyInput.value.trim();
+        if (method === 'claude' && !apiKey) {
+            setPhotoStatus('APIキーを入力してください。', true);
+            apiKeyInput.focus();
+            return;
+        }
+        if (method === 'claude') storeApiKey();
+        photoReadBtn.disabled = true;
+        document.getElementById('photoReadResult').hidden = true;
+        setPhotoStatus(method === 'claude' ? 'AIが結果票を読んでいます…（数十秒かかることがあります）' : '文字認識の準備をしています…');
+        try {
+            const result = method === 'claude' ? await readPhotoWithClaude(apiKey, photoFile) : await readPhotoWithOcr(photoFile);
+            renderPhotoResult(result);
+            const count = Object.values(result.values).filter(v => v.value !== null).length;
+            // OCRは斜めの写真・照明のむら・横のグラフに弱い。拾えた項目が少ないときはAI画像認識をすすめる
+            const hint = method === 'ocr' && count < 6 ? ' 読み取れた項目が少ないため、AI画像認識（Claude API）をおすすめします。' : '';
+            setPhotoStatus(`${count}項目を読み取りました。下の表で確かめてください。${hint}`);
+        } catch (err) {
+            console.error('写真の読み取りエラー:', err);
+            setPhotoStatus(err && err.message ? err.message : '読み取りに失敗しました。', true);
+        } finally {
+            photoReadBtn.disabled = false;
+        }
+    });
+
+    // 確認表：読み取った値は直せる。値がある項目だけ最初からチェックを入れる
+    function renderPhotoResult(result) {
+        document.getElementById('photoReadRows').innerHTML = SoilReader.FIELDS.map(f => {
+            const item = result.values[f.key] || { value: null, note: '' };
+            const current = document.getElementById(`soil_${f.key}`).value;
+            const has = item.value !== null;
+            return `<tr>
+                <td class="photo-use"><input type="checkbox" id="photo_use_${f.key}" ${has ? 'checked' : ''} aria-label="${escapeHtml(f.label)}を反映"></td>
+                <td>(${f.no}) ${escapeHtml(f.label)}${f.unit ? ` <small>${escapeHtml(f.unit)}</small>` : ''}</td>
+                <td><input type="number" step="any" id="photo_val_${f.key}" value="${has ? item.value : ''}"></td>
+                <td class="photo-note">${escapeHtml(item.note || '')}</td>
+                <td class="photo-current">${current === '' ? '（空欄）' : escapeHtml(current)}</td>
+            </tr>`;
+        }).join('');
+        // 値を書き込んだ行は反映の対象にする
+        SoilReader.FIELDS.forEach(f => {
+            document.getElementById(`photo_val_${f.key}`).addEventListener('input', (e) => {
+                document.getElementById(`photo_use_${f.key}`).checked = e.target.value !== '';
+            });
+        });
+        const info = [result.sample ? `試料：${result.sample}` : '', result.warnings].filter(Boolean).join(' ／ ');
+        document.getElementById('photoReadSample').textContent = info ? `⚠️ ${info}` : '';
+        document.getElementById('photoOcrRawWrap').hidden = !result.raw;
+        document.getElementById('photoOcrRaw').textContent = result.raw || '';
+        document.getElementById('photoReadResult').hidden = false;
+    }
+
+    document.getElementById('photoApplyBtn').addEventListener('click', () => {
+        let applied = 0;
+        SoilReader.FIELDS.forEach(f => {
+            const value = document.getElementById(`photo_val_${f.key}`).value;
+            if (!document.getElementById(`photo_use_${f.key}`).checked || value === '') return;
+            const input = document.getElementById(`soil_${f.key}`);
+            input.value = value;
+            input.dispatchEvent(new Event('input', { bubbles: true })); // ②・③を古い結果としてロックする処理を動かす
+            applied++;
+        });
+        photoModal.style.display = 'none';
+        document.getElementById('photoReadNotice').textContent =
+            applied > 0 ? `✅ 写真から${applied}項目を入力しました。値を確かめてから計算してください。` : '反映した項目はありません。';
+    });
+
     // ---------- 初期表示 ----------
     soilTypeSelect.value = 'kuroboku_atsu_ta';
     applySoilTypeDefaults();

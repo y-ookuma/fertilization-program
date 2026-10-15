@@ -130,6 +130,10 @@
             <p class="field-hint">圃場の土壌のタイプが分からないときは、地図で調べられます：<a href="https://soil-inventory.rad.naro.go.jp/" target="_blank" rel="noopener noreferrer">🗺️ 日本土壌インベントリー（農研機構）</a></p>
 
             <h3 class="sub-heading">③ 土壌分析結果入力</h3>
+            <div class="photo-read-bar">
+                <button type="button" id="photoReadOpenBtn" class="btn-secondary">📷 写真から読み込む（カメラ・画像）</button>
+                <span id="photoReadNotice" class="photo-read-notice"></span>
+            </div>
             <p class="field-hint">未測定の項目は空欄のままにしてください（0ではなく「未測定」として扱い、その項目による減肥・補正は行いません）。</p>
             <div class="grid-form">
                 <div class="form-group">
@@ -420,7 +424,7 @@
                 <li><strong>①②③ タブ:</strong> 「① 土壌分析」「② 分析結果と肥料投入量」「③ 施肥設計書」を順に進めます。②・③のタブは、手前のステップで計算するまで選べません。①の入力を変えると②・③は再びロックされるので、「施肥計算をする」からやり直してください（古い計算結果のまま設計書が作られるのを防ぐためです）。</li>
                 <li><strong>① 栽培作物の選択:</strong> 作物と作型を選ぶと、埼玉県主要農作物施肥基準（令和7年）の基肥量と出典ページが表示されます。県基準に載っていない作物は「参考値」のグループにあります（出典未確認）。他県の基準を使う場合は「作物・基肥量を直接入力する」を選び、基肥のN・P2O5・K2Oを入力してください。</li>
                 <li><strong>② 土壌のタイプと作土:</strong> 土壌のタイプを選ぶと、仮比重とCECの代表値（県基準 表5）が入ります。作土深（既定15cm）と仮比重から、分析値のmg/100gをkg/10aに換算します。実測値があれば書き換えてください。</li>
-                <li><strong>③ 土壌分析結果:</strong> 分析報告書の値を入力します。未測定の項目は空欄のままにしてください（その項目による減肥・補正はしません）。石灰/苦土比・苦土/加里比は当量比です。報告書が重量比の場合や空欄の場合は、CaO・MgO・K2Oから自動計算します。</li>
+                <li><strong>③ 土壌分析結果:</strong> 分析報告書の値を入力します。「📷 写真から読み込む」で結果票の写真から読み取ることもできます（読み取った値は確認してから反映します）。未測定の項目は空欄のままにしてください（その項目による減肥・補正はしません）。石灰/苦土比・苦土/加里比は当量比です。報告書が重量比の場合や空欄の場合は、CaO・MgO・K2Oから自動計算します。</li>
                 <li><strong>④ 堆肥（任意）:</strong> 家畜ふん堆肥を使う場合は種類・施用量・水分を入力すると、有効成分（県基準 表17・18）を基肥から差し引きます。堆肥の分析値がある場合は「成分を直接入力する」を選びます。</li>
                 <li><strong>② 設計量の確認:</strong> 「施肥基準 − 土壌・堆肥による調整 ＝ 設計量」がカードで表示されます。窒素は無機態窒素の3mg/100gを超える分、リン酸は有効態リン酸に応じた減肥率、加里はCEC別の適正上限＋10mgを超える分を差し引きます。石灰・苦土はCEC別の適正範囲の下限までの不足量です。</li>
                 <li><strong>⑤ 圃場・⑥ 使用する肥料:</strong> 名前・圃場名と面積を入力し、使う肥料（最大8種類）の成分・袋の重さ・投入量を入力して「投入量を計算する」を押すと、目標・残存（土壌＋堆肥）・追加（肥料）・施肥後（残存＋追加）と目標との過不足、袋数が表示されます。「📂 肥料一覧CSVを読み込む」で肥料名から成分を自動入力できます。各行の「▲ 上へ」「▼ 下へ」で行を入れ替え、「🗑 削除」でその行の入力を消去できます。</li>
@@ -441,6 +445,62 @@
         </div>
     </div>
 
+    <!-- 土壌分析結果票を写真から読み込むモーダル（app.js の「写真から読み込む」） -->
+    <div id="photoReadModal" class="modal">
+        <div class="modal-content modal-content-wide">
+            <span id="closePhotoReadModal" class="close">&times;</span>
+            <h2>📷 土壌分析結果票を写真から読み込む</h2>
+
+            <h3 class="photo-step-title">1. 読み取り方法</h3>
+            <div class="photo-methods">
+                <label class="photo-method"><input type="radio" name="photoMethod" value="claude" checked>
+                    <span><b>AI画像認識（Claude API）</b>：精度が高い方法です。ご自身のAPIキーが必要で、1枚あたり約5〜10円かかります。</span></label>
+                <label class="photo-method"><input type="radio" name="photoMethod" value="ocr">
+                    <span><b>ブラウザ内OCR（無料）</b>：APIキー不要で、写真は外部に送りません。読み取り誤りが多く、斜めから撮った写真・照明にむらのある写真・グラフが並んだ結果票はほとんど読めません。結果を必ず確かめてください。初回は文字認識のデータ（約十数MB）を読み込みます。</span></label>
+            </div>
+            <div id="claudeKeyArea" class="photo-key-area">
+                <label for="anthropicApiKey">Anthropic APIキー</label>
+                <input type="password" id="anthropicApiKey" placeholder="sk-ant-..." autocomplete="off" spellcheck="false">
+                <label class="photo-check"><input type="checkbox" id="rememberApiKey"> このブラウザに保存する（共用のパソコンでは保存しないでください）</label>
+                <p class="field-hint">キーと写真は Anthropic（api.anthropic.com）にだけ送られます。キーは <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener noreferrer">Anthropic Console</a> で発行できます。</p>
+            </div>
+
+            <h3 class="photo-step-title">2. 結果票の写真</h3>
+            <div class="photo-buttons">
+                <button type="button" id="photoCameraBtn" class="btn-secondary">📷 カメラで撮影</button>
+                <button type="button" id="photoFileBtn" class="btn-secondary">🖼️ 画像を選ぶ</button>
+                <input type="file" id="photoCameraInput" accept="image/*" capture="environment" hidden>
+                <input type="file" id="photoFileInput" accept="image/*" hidden>
+            </div>
+            <p class="field-hint">結果票の全体が入り、文字がはっきり読めるように、真上から明るい場所で撮ってください。</p>
+            <img id="photoPreview" class="photo-preview" alt="読み込んだ結果票" hidden>
+
+            <div class="center photo-read-action">
+                <button type="button" id="photoReadBtn" class="btn-accent" disabled>🔍 読み取る</button>
+            </div>
+            <p id="photoReadStatus" class="photo-status" role="status"></p>
+
+            <div id="photoReadResult" hidden>
+                <h3 class="photo-step-title">3. 読み取り結果の確認</h3>
+                <p class="field-hint">値を確かめ、違っていれば直してから「入力欄に反映」を押してください。チェックを外した項目は反映しません。</p>
+                <p id="photoReadSample" class="photo-read-sample"></p>
+                <div class="table-scroll">
+                    <table class="fert-table photo-result-table">
+                        <thead><tr><th>反映</th><th>項目</th><th>読み取った値</th><th>メモ</th><th>今の値</th></tr></thead>
+                        <tbody id="photoReadRows"></tbody>
+                    </table>
+                </div>
+                <details id="photoOcrRawWrap" class="photo-ocr-raw" hidden>
+                    <summary>OCRで認識した文字（全文）</summary>
+                    <pre id="photoOcrRaw"></pre>
+                </details>
+                <div class="center photo-read-action">
+                    <button type="button" id="photoApplyBtn" class="btn-complete">✅ 入力欄に反映</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- 作物別基肥一覧モーダル -->
     <div id="cropListModal" class="modal">
         <div class="modal-content modal-content-wide">
@@ -457,6 +517,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
     <script src="saitama-data.js"></script>
     <script src="calc.js"></script>
+    <script src="soil-reader.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
