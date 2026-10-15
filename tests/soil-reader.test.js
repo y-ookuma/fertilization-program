@@ -78,13 +78,13 @@
         eq(Object.keys(R.parseOcrText('試料番号 12\n採取日 2026/10/01')).length, 0, 'count');
     });
 
-    test('Claudeへの返事の形: 12項目と sample・warnings をすべて必須にしている', () => {
-        eq(R.CLAUDE_SCHEMA.required.length, 14, 'required');
-        eq(R.CLAUDE_SCHEMA.additionalProperties, false, 'additionalProperties');
-        R.FIELDS.forEach(f => eq(!!R.CLAUDE_SCHEMA.properties[f.key], true, f.key));
+    test('AIの返事の形: 12項目と sample・warnings をすべて必須にしている', () => {
+        eq(R.AI_SCHEMA.required.length, 14, 'required');
+        eq(R.AI_SCHEMA.additionalProperties, false, 'additionalProperties');
+        R.FIELDS.forEach(f => eq(!!R.AI_SCHEMA.properties[f.key], true, f.key));
     });
-    test('Claudeの返事の整形: null は空欄、note は残す', () => {
-        const r = R.normalizeClaudeResult({ sample: 'A-1', warnings: '', ph: { value: 6.2, note: '' },
+    test('AIの返事の整形: null は空欄、note は残す', () => {
+        const r = R.normalizeAiResult({ sample: 'A-1', warnings: '', ph: { value: 6.2, note: '' },
             cao_mgo_ratio: { value: null, note: '重量比のため空欄' }, nh4n: { value: null, note: '' } });
         eq(r.values.ph.value, 6.2, 'ph'); eq(r.values.cao_mgo_ratio.value, null, 'ratio');
         eq(r.values.cao_mgo_ratio.note, '重量比のため空欄', 'note'); eq(r.values.nh4n, undefined, 'nh4n');

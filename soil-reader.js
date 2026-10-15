@@ -2,8 +2,8 @@
 // DOMに依存しない部分だけを置く（画面の操作・APIの呼び出しは app.js）。
 //   - FIELDS        … 12項目（入力欄のIDの末尾 soil_xxx と、結果票での呼び名）
 //   - parseOcrText  … ブラウザ内OCR（Tesseract.js）の文字から、項目名と同じ行の数値を拾う
-//   - CLAUDE_PROMPT / CLAUDE_SCHEMA … AI画像認識（Claude API）への指示文と、返してもらうJSONの形
-//   - normalizeClaudeResult … Claudeの返事を { key: { value, note } } にそろえる
+//   - AI_PROMPT / AI_SCHEMA … AI画像認識（Gemini API・Claude API 共通）への指示文と、返してもらうJSONの形
+//   - normalizeAiResult … AIの返事を { key: { value, note } } にそろえる
 (function (root) {
     'use strict';
 
@@ -108,8 +108,8 @@
         return found;
     }
 
-    // ---------- AI画像認識（Claude API） ----------
-    const CLAUDE_PROMPT = [
+    // ---------- AI画像認識（Gemini API・Claude API で共通） ----------
+    const AI_PROMPT = [
         'この画像は土壌分析の結果票です。次の12項目の値を読み取ってください。',
         '',
         FIELDS.map(f => `(${f.no}) ${f.key}: ${f.label}${f.unit ? `（${f.unit}）` : ''}`).join('\n'),
@@ -137,7 +137,7 @@
         required: ['value', 'note'],
         additionalProperties: false
     };
-    const CLAUDE_SCHEMA = {
+    const AI_SCHEMA = {
         type: 'object',
         properties: Object.assign(
             { sample: { type: 'string' }, warnings: { type: 'string' } },
@@ -147,8 +147,8 @@
         additionalProperties: false
     };
 
-    // Claudeの返事（JSON）を { values: { key: { value, note } }, sample, warnings } にそろえる
-    function normalizeClaudeResult(obj) {
+    // AIの返事（JSON）を { values: { key: { value, note } }, sample, warnings } にそろえる
+    function normalizeAiResult(obj) {
         const values = {};
         FIELDS.forEach(f => {
             const item = obj && obj[f.key];
@@ -163,5 +163,5 @@
         };
     }
 
-    root.SoilReader = { FIELDS, parseOcrText, normalizeLine, CLAUDE_PROMPT, CLAUDE_SCHEMA, normalizeClaudeResult };
+    root.SoilReader = { FIELDS, parseOcrText, normalizeLine, AI_PROMPT, AI_SCHEMA, normalizeAiResult };
 })(typeof window !== 'undefined' ? window : globalThis);

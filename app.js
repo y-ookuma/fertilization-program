@@ -1803,21 +1803,27 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ---------- 写真から読み込む（③ 土壌分析結果入力の12項目） ----------
-    // 読み取り方法は2つ。どちらも結果はいったん確認表に出し、利用者が確かめてから入力欄に反映する。
-    //   claude … Claude API（利用者自身のAPIキー）。公式SDKを使うときだけCDNから読み込む
+    // 読み取り方法は3つ。どれも結果はいったん確認表に出し、利用者が確かめてから入力欄に反映する。
+    //   gemini … Gemini API の無料枠（利用者自身のAPIキー）。Interactions API を fetch で直接呼ぶ
+    //   claude … Claude API（利用者自身のAPIキー・有料）。公式SDKを使うときだけCDNから読み込む
     //   ocr    … Tesseract.js（ブラウザ内で文字認識）。項目名と同じ行の数値を SoilReader.parseOcrText で拾う
     const ANTHROPIC_SDK_URL = 'https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@0.131.0/+esm';
     const TESSERACT_URL = 'https://cdn.jsdelivr.net/npm/tesseract.js@7.0.0/dist/tesseract.min.js';
     const CLAUDE_MODEL = 'claude-opus-5-5';
-    const API_KEY_STORAGE = 'fertilizationProgram.anthropicApiKey';
-    const PHOTO_MAX_SIDE = 1600; // Claudeに送る画像の長辺(px)。結果票の文字が読める大きさで、送る量を抑える
+    const GEMINI_MODEL = 'gemini-3.8-flash'; // 無料枠で使えるモデル（Gemini API の料金ページ、2026年10月時点）
+    const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/interactions';
+    const PHOTO_MAX_SIDE = 1600; // AIに送る画像の長辺(px)。結果票の文字が読める大きさで、送る量を抑える
+
+    // AIごとのAPIキー入力欄と、ブラウザに保存するときの名前
+    const API_PROVIDERS = {
+        gemini: { area: 'geminiKeyArea', input: 'geminiApiKey', remember: 'rememberGeminiKey', storage: 'fertilizationProgram.geminiApiKey' },
+        claude: { area: 'claudeKeyArea', input: 'anthropicApiKey', remember: 'rememberApiKey', storage: 'fertilizationProgram.anthropicApiKey' }
+    };
 
     const photoModal = document.getElementById('photoReadModal');
     const photoPreview = document.getElementById('photoPreview');
     const photoReadBtn = document.getElementById('photoReadBtn');
     const photoStatus = document.getElementById('photoReadStatus');
-    const apiKeyInput = document.getElementById('anthropicApiKey');
-    const rememberApiKey = document.getElementById('rememberApiKey');
     let photoFile = null;
     let photoPreviewUrl = '';
 
@@ -1827,32 +1833,38 @@ document.addEventListener('DOMContentLoaded', () => {
         photoStatus.classList.toggle('is-error', !!isError);
     }
     function updatePhotoMethodView() {
-        document.getElementById('claudeKeyArea').hidden = photoMethod() !== 'claude';
+        Object.keys(API_PROVIDERS).forEach(m => { document.getElementById(API_PROVIDERS[m].area).hidden = photoMethod() !== m; });
     }
 
     // APIキーは「保存する」にチェックしたときだけ、このブラウザ（localStorage）に置く
-    function loadSavedApiKey() {
-        try {
-            const saved = localStorage.getItem(API_KEY_STORAGE);
-            if (saved) { apiKeyInput.value = saved; rememberApiKey.checked = true; }
-        } catch (e) { /* 保存が使えない環境では毎回入力してもらう */ }
+    function loadSavedApiKeys() {
+        Object.values(API_PROVIDERS).forEach(p => {
+            try {
+                const saved = localStorage.getItem(p.storage);
+                if (saved) { document.getElementById(p.input).value = saved; document.getElementById(p.remember).checked = true; }
+            } catch (e) { /* 保存が使えない環境では毎回入力してもらう */ }
+        });
     }
-    function storeApiKey() {
+    function storeApiKey(method) {
+        const p = API_PROVIDERS[method];
+        const key = document.getElementById(p.input).value.trim();
         try {
-            if (rememberApiKey.checked && apiKeyInput.value.trim()) localStorage.setItem(API_KEY_STORAGE, apiKeyInput.value.trim());
-            else localStorage.removeItem(API_KEY_STORAGE);
+            if (document.getElementById(p.remember).checked && key) localStorage.setItem(p.storage, key);
+            else localStorage.removeItem(p.storage);
         } catch (e) { /* 保存できなくても読み取りは続ける */ }
     }
 
     document.getElementById('photoReadOpenBtn').addEventListener('click', () => {
-        loadSavedApiKey();
+        loadSavedApiKeys();
         updatePhotoMethodView();
         photoModal.style.display = 'block';
     });
     document.getElementById('closePhotoReadModal').addEventListener('click', () => { photoModal.style.display = 'none'; });
     window.addEventListener('click', (e) => { if (e.target === photoModal) photoModal.style.display = 'none'; });
     document.querySelectorAll('input[name="photoMethod"]').forEach(r => r.addEventListener('change', updatePhotoMethodView));
-    rememberApiKey.addEventListener('change', storeApiKey);
+    Object.keys(API_PROVIDERS).forEach(m => {
+        document.getElementById(API_PROVIDERS[m].remember).addEventListener('change', () => storeApiKey(m));
+    });
 
     // 写真を選ぶ（カメラ／画像ファイル）
     const photoCameraInput = document.getElementById('photoCameraInput');
@@ -1904,7 +1916,45 @@ document.addEventListener('DOMContentLoaded', () => {
         return anthropicSdkPromise;
     }
 
-    // Claude API で読み取る。返事の形は SoilReader.CLAUDE_SCHEMA（構造化出力）で決めてある。
+    // Gemini API（無料枠）で読み取る。返事の形は SoilReader.AI_SCHEMA（構造化出力）で決めてある。
+    // store: false で、やりとりを Google 側に保存しない（会話の続きは使わないため）。
+    async function readPhotoWithGemini(apiKey, file) {
+        const base64 = await photoToJpegBase64(file);
+        let res;
+        try {
+            res = await fetch(GEMINI_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+                body: JSON.stringify({
+                    model: GEMINI_MODEL,
+                    input: [
+                        { type: 'text', text: SoilReader.AI_PROMPT },
+                        { type: 'image', data: base64, mime_type: 'image/jpeg' }
+                    ],
+                    response_format: { type: 'text', mime_type: 'application/json', schema: SoilReader.AI_SCHEMA },
+                    store: false
+                })
+            });
+        } catch (err) {
+            throw new Error('Google に接続できませんでした。通信環境をご確認ください。');
+        }
+        const body = await res.json().catch(() => null);
+        if (!res.ok) {
+            const error = ((Array.isArray(body) ? body[0] : body) || {}).error || {};
+            const reason = ((error.details || []).find(d => d.reason) || {}).reason;
+            if (reason === 'API_KEY_INVALID' || res.status === 401) throw new Error('APIキーが正しくありません。キーを確かめてください。');
+            if (res.status === 403) throw new Error('このAPIキーでは利用できません（Google AI Studio でキーの設定をご確認ください）。');
+            if (res.status === 429) throw new Error('無料枠の上限に達しました。しばらく待つか、翌日にもう一度お試しください。');
+            throw new Error(`APIエラー（${res.status}）：${error.message || '不明なエラー'}`);
+        }
+        if (!body || body.status !== 'completed') throw new Error(`読み取りが完了しませんでした（${body ? body.status : '応答なし'}）。もう一度お試しください。`);
+        const text = (body.steps || []).filter(s => s.type === 'model_output')
+            .flatMap(s => s.content || []).filter(c => c.type === 'text').map(c => c.text).join('');
+        if (!text) throw new Error('AIから読み取り結果が返ってきませんでした。別の写真でお試しください。');
+        return Object.assign(SoilReader.normalizeAiResult(JSON.parse(text)), { raw: '' });
+    }
+
+    // Claude API で読み取る。返事の形は SoilReader.AI_SCHEMA（構造化出力）で決めてある。
     // 安全上の理由で断られた場合に備え、サーバー側の代替モデル（fallbacks: 'default'）を有効にしている。
     async function readPhotoWithClaude(apiKey, file) {
         const [Anthropic, base64] = await Promise.all([loadAnthropicSdk(), photoToJpegBase64(file)]);
@@ -1918,13 +1968,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 fallbacks: 'default',
                 output_config: {
                     effort: 'medium',
-                    format: { type: 'json_schema', schema: SoilReader.CLAUDE_SCHEMA }
+                    format: { type: 'json_schema', schema: SoilReader.AI_SCHEMA }
                 },
                 messages: [{
                     role: 'user',
                     content: [
                         { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: base64 } },
-                        { type: 'text', text: SoilReader.CLAUDE_PROMPT }
+                        { type: 'text', text: SoilReader.AI_PROMPT }
                     ]
                 }]
             });
@@ -1940,7 +1990,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (response.stop_reason === 'refusal') throw new Error('この画像は読み取りを断られました。別の写真でお試しください。');
         if (response.stop_reason === 'max_tokens') throw new Error('読み取りの途中で打ち切られました。もう一度お試しください。');
         const text = response.content.filter(b => b.type === 'text').map(b => b.text).join('');
-        return Object.assign(SoilReader.normalizeClaudeResult(JSON.parse(text)), { raw: '' });
+        return Object.assign(SoilReader.normalizeAiResult(JSON.parse(text)), { raw: '' });
     }
 
     let tesseractPromise = null;
@@ -1982,22 +2032,25 @@ document.addEventListener('DOMContentLoaded', () => {
     photoReadBtn.addEventListener('click', async () => {
         if (!photoFile) return;
         const method = photoMethod();
-        const apiKey = apiKeyInput.value.trim();
-        if (method === 'claude' && !apiKey) {
+        const provider = API_PROVIDERS[method];
+        const apiKey = provider ? document.getElementById(provider.input).value.trim() : '';
+        if (provider && !apiKey) {
             setPhotoStatus('APIキーを入力してください。', true);
-            apiKeyInput.focus();
+            document.getElementById(provider.input).focus();
             return;
         }
-        if (method === 'claude') storeApiKey();
+        if (provider) storeApiKey(method);
         photoReadBtn.disabled = true;
         document.getElementById('photoReadResult').hidden = true;
-        setPhotoStatus(method === 'claude' ? 'AIが結果票を読んでいます…（数十秒かかることがあります）' : '文字認識の準備をしています…');
+        setPhotoStatus(provider ? 'AIが結果票を読んでいます…（数十秒かかることがあります）' : '文字認識の準備をしています…');
         try {
-            const result = method === 'claude' ? await readPhotoWithClaude(apiKey, photoFile) : await readPhotoWithOcr(photoFile);
+            const result = method === 'gemini' ? await readPhotoWithGemini(apiKey, photoFile)
+                : method === 'claude' ? await readPhotoWithClaude(apiKey, photoFile)
+                : await readPhotoWithOcr(photoFile);
             renderPhotoResult(result);
             const count = Object.values(result.values).filter(v => v.value !== null).length;
             // OCRは斜めの写真・照明のむら・横のグラフに弱い。拾えた項目が少ないときはAI画像認識をすすめる
-            const hint = method === 'ocr' && count < 6 ? ' 読み取れた項目が少ないため、AI画像認識（Claude API）をおすすめします。' : '';
+            const hint = method === 'ocr' && count < 6 ? ' 読み取れた項目が少ないため、AI画像認識（Gemini API・無料枠）をおすすめします。' : '';
             setPhotoStatus(`${count}項目を読み取りました。下の表で確かめてください。${hint}`);
         } catch (err) {
             console.error('写真の読み取りエラー:', err);

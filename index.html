@@ -453,12 +453,20 @@
 
             <h3 class="photo-step-title">1. 読み取り方法</h3>
             <div class="photo-methods">
-                <label class="photo-method"><input type="radio" name="photoMethod" value="claude" checked>
-                    <span><b>AI画像認識（Claude API）</b>：精度が高い方法です。ご自身のAPIキーが必要で、1枚あたり約5〜10円かかります。</span></label>
+                <label class="photo-method"><input type="radio" name="photoMethod" value="gemini" checked>
+                    <span><b>AI画像認識（Gemini API・無料枠）</b>：無料で使えるAIです。Googleアカウントで発行するAPIキーが必要です。無料枠では、送った写真が Google の製品改善に使われ、人が見ることがあります。1日に使える回数に上限があります。</span></label>
+                <label class="photo-method"><input type="radio" name="photoMethod" value="claude">
+                    <span><b>AI画像認識（Claude API・有料）</b>：精度が高い方法です。Anthropic のAPIキーが必要で、1枚あたり約5〜10円かかります。送った写真は製品改善には使われません。</span></label>
                 <label class="photo-method"><input type="radio" name="photoMethod" value="ocr">
                     <span><b>ブラウザ内OCR（無料）</b>：APIキー不要で、写真は外部に送りません。読み取り誤りが多く、斜めから撮った写真・照明にむらのある写真・グラフが並んだ結果票はほとんど読めません。結果を必ず確かめてください。初回は文字認識のデータ（約十数MB）を読み込みます。</span></label>
             </div>
-            <div id="claudeKeyArea" class="photo-key-area">
+            <div id="geminiKeyArea" class="photo-key-area">
+                <label for="geminiApiKey">Gemini APIキー</label>
+                <input type="password" id="geminiApiKey" placeholder="AIza..." autocomplete="off" spellcheck="false">
+                <label class="photo-check"><input type="checkbox" id="rememberGeminiKey"> このブラウザに保存する（共用のパソコンでは保存しないでください）</label>
+                <p class="field-hint">キーと写真は Google（generativelanguage.googleapis.com）にだけ送られます。キーは <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">Google AI Studio</a> で無料で発行できます（クレジットカードの登録は不要）。無料枠では、お名前などが写った結果票も Google の担当者に見られることがある点にご注意ください。</p>
+            </div>
+            <div id="claudeKeyArea" class="photo-key-area" hidden>
                 <label for="anthropicApiKey">Anthropic APIキー</label>
                 <input type="password" id="anthropicApiKey" placeholder="sk-ant-..." autocomplete="off" spellcheck="false">
                 <label class="photo-check"><input type="checkbox" id="rememberApiKey"> このブラウザに保存する（共用のパソコンでは保存しないでください）</label>
