@@ -512,6 +512,7 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus {
 /* ---------- Field name (圃場名) ---------- */
 .field-name-row { display: flex; flex-wrap: wrap; gap: 0 16px; }
 .field-name-group { flex: 1 1 220px; max-width: 360px; margin-bottom: 14px; }
+.field-no-group { flex: 0 1 140px; } /* 圃場番号は短いので幅を狭くする */
 
 .disclaimer {
     margin: 16px 2px 0;

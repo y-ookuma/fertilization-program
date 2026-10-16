@@ -87,6 +87,10 @@
                     <label for="ownerName">名前</label>
                     <input type="text" id="ownerName" placeholder="例: 加納 太郎">
                 </div>
+                <div class="form-group field-name-group field-no-group">
+                    <label for="fieldNo">圃場番号</label>
+                    <input type="text" id="fieldNo" placeholder="例: 7">
+                </div>
                 <div class="form-group field-name-group">
                     <label for="fieldName">圃場名</label>
                     <input type="text" id="fieldName" placeholder="例: 北側ハウス1号">
@@ -104,7 +108,7 @@
                     <span id="areaConverted" class="area-converted">= 1,000 ㎡ ／ 10.00 a ／ 0.100 ha</span>
                 </div>
             </div>
-            <p class="disclaimer">面積が未入力の場合は10a（1,000㎡）として計算します。肥料の投入量・袋数は、②の「投入量を計算する」でこの面積に換算されます。名前・圃場名・面積は③の施肥設計書（PDF・Excel）に載ります。</p>
+            <p class="disclaimer">面積が未入力の場合は10a（1,000㎡）として計算します。肥料の投入量・袋数は、②の「投入量を計算する」でこの面積に換算されます。名前・圃場番号・圃場名・面積は③の施肥設計書（PDF・Excel）に載ります。</p>
             <div class="center">
                 <button type="button" id="goStep1Btn" class="btn-accent">① 土壌分析へ進む →</button>
             </div>
@@ -438,7 +442,7 @@
             <span id="closeModal" class="close">&times;</span>
             <h2>施肥設計の手順書</h2>
             <ol>
-                <li><strong>基本情報:</strong> 名前・圃場名と面積を入力します。面積が未入力の場合は10aとして計算します。名前・圃場名・面積は施肥設計書に載ります。</li>
+                <li><strong>基本情報:</strong> 名前・圃場番号・圃場名と面積を入力します。面積が未入力の場合は10aとして計算します。名前・圃場番号・圃場名・面積は施肥設計書に載ります。</li>
                 <li><strong>①②③ タブ:</strong> 「基本情報」のあと、「① 土壌分析」「② 分析結果と肥料投入量」「③ 施肥設計書」を順に進めます。②・③のタブは、手前のステップで計算するまで選べません。①の入力を変えると②・③は再びロックされるので、「施肥計算をする」からやり直してください（古い計算結果のまま設計書が作られるのを防ぐためです）。</li>
                 <li><strong>① 栽培作物の選択:</strong> 作物と作型を選ぶと、埼玉県主要農作物施肥基準（令和7年）の基肥量と出典ページが表示されます。県基準に載っていない作物は「参考値」のグループにあります（出典未確認）。他県の基準を使う場合は「作物・基肥量を直接入力する」を選び、基肥のN・P2O5・K2Oを入力してください。</li>
                 <li><strong>② 土壌のタイプと作土:</strong> 土壌のタイプを選ぶと、仮比重とCECの代表値（県基準 表5）が入ります。作土深（既定15cm）と仮比重から、分析値のmg/100gをkg/10aに換算します。実測値があれば書き換えてください。</li>

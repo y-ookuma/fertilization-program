@@ -712,6 +712,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 value: document.getElementById('areaValue').value,
                 unit: document.getElementById('areaUnit').value,
                 ownerName: document.getElementById('ownerName').value,
+                fieldNo: document.getElementById('fieldNo').value,
                 fieldName: document.getElementById('fieldName').value
             },
             fertilizers: fertilizers,
@@ -748,6 +749,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('areaValue').value = data.area.value || '';
             document.getElementById('areaUnit').value = data.area.unit || 'm2';
             document.getElementById('ownerName').value = data.area.ownerName || '';
+            document.getElementById('fieldNo').value = data.area.fieldNo || '';
             document.getElementById('fieldName').value = data.area.fieldName || '';
         }
         updateAreaConvertedDisplay();
@@ -1227,6 +1229,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const a = areaM2 / 100;
         const ha = areaM2 / 10000;
         const ownerName = document.getElementById('ownerName').value.trim();
+        const fieldNo = document.getElementById('fieldNo').value.trim();
         const fieldName = document.getElementById('fieldName').value.trim();
 
         // バッジ・タイトル（作成日は栽培作物名の右側に表示する）
@@ -1237,6 +1240,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('captureDateBadge').textContent = `作成日: ${todayStamp()}`;
         document.getElementById('captureAreaCaption').textContent =
             (ownerName ? `名前：${ownerName} ／ ` : '') +
+            (fieldNo ? `圃場番号：${fieldNo} ／ ` : '') +
             (fieldName ? `圃場名：${fieldName} ／ ` : '') +
             `面積：${areaM2.toLocaleString('ja-JP', { maximumFractionDigits: 1 })} ㎡（${a.toFixed(2)} a ／ ${ha.toFixed(3)} ha）`;
 
@@ -1301,7 +1305,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // PDF・Excel出力用のデータ。画面の設計書と同じ値・同じ文章から作る
         lastReport = {
-            crop, ownerName, fieldName, areaM2, field, result, fc, soilItems,
+            crop, ownerName, fieldNo, fieldName, areaM2, field, result, fc, soilItems,
             date: todayStamp(),
             conditionsText: document.getElementById('reportConditionsText').textContent,
             compostText: document.getElementById('finalReportCompostText').textContent,
@@ -1387,17 +1391,19 @@ document.addEventListener('DOMContentLoaded', () => {
             '</tr>').join('');
 
         const box = (label, text) => text ? `<div class="pdf-box"><b>${label}：</b>${esc(text)}</div>` : '';
-        const fieldLine = [r.ownerName, r.fieldName].filter(Boolean).map(esc).concat(`作成日 ${r.date}`).join(' ／ ');
+        const fieldLine = [r.ownerName, r.fieldNo ? `圃場番号 ${r.fieldNo}` : '', r.fieldName]
+            .filter(Boolean).map(esc).concat(`作成日 ${r.date}`).join(' ／ ');
 
         return `
             <div class="pdf-title"><b>施肥設計書</b><span>${esc(cropLabel(r.crop))}<br>${fieldLine}</span></div>
             <table class="pdf-t">
                 <tr><td class="pdf-lbl">名前</td><td>${esc(r.ownerName || '—')}</td>
-                    <td class="pdf-lbl">圃場名</td><td>${esc(r.fieldName || '—')}</td>
-                    <td class="pdf-lbl">面積</td><td>${r.areaM2.toLocaleString('ja-JP', { maximumFractionDigits: 1 })}㎡（${a.toFixed(2)}a）</td></tr>
+                    <td class="pdf-lbl">圃場番号</td><td>${esc(r.fieldNo || '—')}</td>
+                    <td class="pdf-lbl">圃場名</td><td>${esc(r.fieldName || '—')}</td></tr>
                 <tr><td class="pdf-lbl">作物</td><td>${esc(`${r.crop.emoji} ${cropLabel(r.crop)}`)}</td>
-                    <td class="pdf-lbl">土壌</td><td>${esc(r.field.soilType.name)}</td>
+                    <td class="pdf-lbl">面積</td><td>${r.areaM2.toLocaleString('ja-JP', { maximumFractionDigits: 1 })}㎡（${a.toFixed(2)}a）</td>
                     <td class="pdf-lbl">作土深</td><td>${r.field.depth}cm（仮比重${r.field.bd}）</td></tr>
+                <tr><td class="pdf-lbl">土壌</td><td colspan="5">${esc(r.field.soilType.name)}</td></tr>
             </table>
             <div><div class="pdf-sec">土壌分析結果</div>
                 <table class="pdf-t pdf-soil">
@@ -1556,23 +1562,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 見出し
         put('A1', '施肥設計書', { merge: 'A1:F1', bold: true, size: 18, border: false });
-        put('J1', [r.ownerName, r.fieldName, `作成日 ${r.date}`].filter(Boolean).join(' ／ '), { merge: 'J1:O1', align: 'right', border: false });
+        put('J1', [r.ownerName, r.fieldNo ? `圃場番号 ${r.fieldNo}` : '', r.fieldName, `作成日 ${r.date}`].filter(Boolean).join(' ／ '),
+            { merge: 'J1:O1', align: 'right', border: false });
         ws.getRow(1).height = 30;
         ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1', 'K1', 'L1', 'M1', 'N1', 'O1']
             .forEach(a => { ws.getCell(a).border = { bottom: { style: 'medium', color: { argb: GREEN } } }; });
 
         // 基本情報
         label('A3', '名前'); put('B3', r.ownerName || '—', { merge: 'B3:D3' });
-        label('E3', '圃場名'); put('F3', r.fieldName || '—', { merge: 'F3:H3' });
-        label('I3', '面積(㎡)'); put('J3', r.areaM2, { fmt: '#,##0.0', align: 'right' });
-        label('K3', '面積(a)'); put('L3', r.areaM2 / 100, { fmt: '0.00', align: 'right' });
+        label('E3', '圃場番号'); put('F3', r.fieldNo || '—', { merge: 'F3:G3' });
+        label('H3', '圃場名'); put('I3', r.fieldName || '—', { merge: 'I3:L3' });
         label('A4', '作物'); put('B4', `${r.crop.emoji} ${cropLabel(r.crop)}`, { merge: 'B4:D4' });
-        label('E4', '土壌'); put('F4', r.field.soilType.name, { merge: 'F4:H4' });
-        label('I4', '作土深(cm)'); put('J4', r.field.depth, { align: 'right' });
-        label('K4', '仮比重'); put('L4', r.field.bd, { fmt: '0.00', align: 'right' });
+        label('E4', '面積(㎡)'); put('F4', r.areaM2, { merge: 'F4:G4', fmt: '#,##0.0', align: 'right' });
+        label('H4', '面積(a)'); put('I4', r.areaM2 / 100, { fmt: '0.00', align: 'right' });
+        label('A5', '土壌'); put('B5', r.field.soilType.name, { merge: 'B5:D5' });
+        label('E5', '作土深(cm)'); put('F5', r.field.depth, { merge: 'F5:G5', align: 'right' });
+        label('H5', '仮比重'); put('I5', r.field.bd, { fmt: '0.00', align: 'right' });
 
         // 土壌分析結果
-        let row = 6;
+        let row = 7;
         section(row++, '土壌分析結果');
         head(`A${row}`, '項目', `A${row}:B${row}`); head(`C${row}`, '分析値'); head(`D${row}`, '適正範囲');
         head(`E${row}`, '判定'); head(`F${row}`, '備考', `F${row}:H${row}`);
