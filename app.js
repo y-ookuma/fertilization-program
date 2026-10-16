@@ -565,7 +565,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('closeCropListModal').addEventListener('click', () => cropListModal.style.display = 'none');
     window.addEventListener('click', (e) => { if (e.target === cropListModal) cropListModal.style.display = 'none'; });
 
-    // ---------- ステップタブ（1→2→3）の状態表示・切り替え ----------
+    // ---------- ステップタブ（基本情報(0)→1→2→3）の状態表示・切り替え ----------
     function setFlowStep(activeStep) {
         document.querySelectorAll('.flow-step').forEach(el => {
             const step = parseInt(el.dataset.step, 10);
@@ -578,7 +578,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 指定ステップのセクションだけを表示するタブ切り替え（他は非表示）
     function showStep(step) {
-        [1, 2, 3].forEach(n => {
+        [0, 1, 2, 3].forEach(n => {
             document.getElementById('section' + n).style.display = (n === step) ? 'block' : 'none';
         });
         setFlowStep(step);
@@ -628,6 +628,10 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('section1').addEventListener('change', invalidateStep2);
     document.getElementById('section2').addEventListener('input', invalidateStep3);
     document.getElementById('section2').addEventListener('change', invalidateStep3);
+    // 基本情報（名前・圃場名・面積）は③の施肥設計書と肥料の投入量に使うので、変わったら③をロックする
+    document.getElementById('section0').addEventListener('input', invalidateStep3);
+    document.getElementById('section0').addEventListener('change', invalidateStep3);
+    document.getElementById('goStep1Btn').addEventListener('click', () => showStep(1));
 
     // ---------- 面積の取得・換算 ----------
     function getAreaM2() {
