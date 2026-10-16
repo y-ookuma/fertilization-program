@@ -1229,7 +1229,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const ownerName = document.getElementById('ownerName').value.trim();
         const fieldName = document.getElementById('fieldName').value.trim();
 
-        // バッジ・タイトル（作成日は栽培作物名の右側に表示し、PNG/PDF出力にも含まれる）
+        // バッジ・タイトル（作成日は栽培作物名の右側に表示する）
         document.getElementById('reportCropEmoji').textContent = crop.emoji;
         document.getElementById('reportCropName').textContent = fieldName ? `${cropLabel(crop)}（${fieldName}）` : cropLabel(crop);
         document.getElementById('captureCropEmoji').textContent = crop.emoji;
@@ -1433,9 +1433,8 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
     }
 
-    // ---------- 簡易結果表示（PDFと同じ表を画面に表示。もう一度押すと通常の表示に戻る） ----------
-    // 通常の設計書（#captureArea）は section3 の simple-mode クラスで隠す。
-    // 要素に直接 display:none を付けると、PNG出力で複製した設計書まで隠れてしまうため。
+    // ---------- 簡易結果表示（PDFと同じ表を画面に表示。最初はこちらを表示し、ボタンで通常の表示と切り替える） ----------
+    // 通常の設計書（#captureArea）は section3 の simple-mode クラスで隠す（index.html で最初から付けている）。
     const section3 = document.getElementById('section3');
     const simpleViewBtn = document.getElementById('simpleViewBtn');
     function renderSimpleReportView() {
@@ -1450,114 +1449,10 @@ document.addEventListener('DOMContentLoaded', () => {
         simpleViewBtn.textContent = on ? '🔙 通常表示に戻す' : '📋 簡易結果表示';
     });
 
-    // ---------- 結果の画像化（PNG・PDF共通、A4レイアウトに合わせて出力） ----------
-    const A4_WIDTH_MM = 210;  // A4縦
-    const A4_HEIGHT_MM = 297; // A4縦
+    // ---------- PDF出力の用紙（A4縦） ----------
+    const A4_WIDTH_MM = 210;
+    const A4_HEIGHT_MM = 297;
     const EXPORT_DPI = 200; // 出力解像度の目安（約200dpi）
-    const PX_PER_MM = EXPORT_DPI / 25.4;
-    const A4_WIDTH_PX = Math.round(A4_WIDTH_MM * PX_PER_MM);
-
-    // ライセンス表記(右下)をcanvasに印字する
-    // 作成日は栽培作物名の右側（#captureDateBadge）としてHTML側に描画済みのため、
-    // html2canvasでの撮影時に自動的に含まれる。ここでは重複させないためライセンス表記のみ追加する。
-    function stampCaptureCanvas(canvas) {
-        const ctx = canvas.getContext('2d');
-        // html2canvasが撮影時に設定した座標変換（画面外に置いた複製の位置補正）が残っているため、元に戻してから描く
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
-        const padding = 5 * PX_PER_MM;
-        const fontSize = 3.2 * PX_PER_MM;
-
-        ctx.font = `bold ${fontSize}px "Noto Sans JP", "Hiragino Sans", Arial, sans-serif`;
-        ctx.textAlign = 'right';
-
-        const footerLines = [
-            'This project is licensed under the BSD 3-Clause License.',
-            'Copyright (c) 2026 y-ookuma'
-        ];
-        const lineHeight = 4.2 * PX_PER_MM;
-        const bottomBlockHeight = lineHeight * footerLines.length + padding * 0.8;
-        ctx.fillStyle = 'rgba(253, 254, 252, 0.94)';
-        ctx.fillRect(0, canvas.height - bottomBlockHeight, canvas.width, bottomBlockHeight);
-
-        ctx.textBaseline = 'bottom';
-        ctx.fillStyle = '#2E3B2E';
-        const rightX = canvas.width - padding;
-        let y = canvas.height - padding;
-        for (let i = footerLines.length - 1; i >= 0; i--) {
-            ctx.fillText(footerLines[i], rightX, y);
-            y -= lineHeight;
-        }
-
-        return canvas;
-    }
-
-    // captureAreaをA4の幅(px)で複製した、画面には表示されない複製要素を作る。
-    function buildA4Clone() {
-        const source = document.getElementById('captureArea');
-        const clone = source.cloneNode(true);
-        clone.removeAttribute('id');
-        clone.classList.add('a4-export');
-        clone.style.width = `${A4_WIDTH_PX}px`;
-        clone.style.maxWidth = 'none';
-        clone.style.boxSizing = 'border-box';
-        clone.style.position = 'fixed';
-        clone.style.top = '0';
-        clone.style.left = '-99999px';
-        clone.style.margin = '0';
-        document.body.appendChild(clone);
-        return clone;
-    }
-
-    // captureAreaをA4幅で撮影し、スタンプ済みcanvasを返す（フォント読み込み待ち。2秒でタイムアウトして進む）
-    // 返されるcanvasは横幅がA4縦の幅(210mm)固定、縦は内容の長さになる。
-    function generateA4ReportCanvas() {
-        const fontsReadyPromise = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
-        const timeoutPromise = new Promise(resolve => setTimeout(resolve, 2000));
-        const fontsReady = Promise.race([fontsReadyPromise, timeoutPromise]);
-
-        // 画面表示は70%だが、PNG/PDF出力時は従来の100%フォントサイズで描画する
-        const rootFontSizeBeforeExport = document.documentElement.style.fontSize;
-        document.documentElement.style.fontSize = '100%';
-        const clone = buildA4Clone();
-
-        return fontsReady
-            .then(() => html2canvas(clone, {
-                backgroundColor: '#FDFEFC',
-                width: A4_WIDTH_PX,
-                windowWidth: A4_WIDTH_PX,
-                scale: 1
-            }))
-            .then(canvas => {
-                document.body.removeChild(clone);
-                document.documentElement.style.fontSize = rootFontSizeBeforeExport;
-                return stampCaptureCanvas(canvas);
-            })
-            .catch(err => {
-                if (clone.parentNode) document.body.removeChild(clone);
-                document.documentElement.style.fontSize = rootFontSizeBeforeExport;
-                throw err;
-            });
-    }
-
-    // ---------- PNG出力（A4横幅の画像。内容が長い場合は縦に長い画像になる） ----------
-    document.getElementById('exportPngBtn').addEventListener('click', () => {
-        if (typeof html2canvas === 'undefined') {
-            alert('PNG出力機能の読み込みに失敗しました。通信環境をご確認のうえ再度お試しください。');
-            return;
-        }
-        generateA4ReportCanvas()
-            .then(canvas => {
-                const link = document.createElement('a');
-                const cropName = document.getElementById('reportCropName').textContent || 'result';
-                link.download = `施肥設計書_${sanitizeFilename(cropName)}.png`;
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-            })
-            .catch(err => {
-                console.error('PNG出力エラー:', err);
-                alert('PNGの生成に失敗しました。もう一度お試しください。');
-            });
-    });
 
     // ---------- PDF出力（表形式のPDF用の表を、A4縦1枚に収めて出力） ----------
     const PDF_SHEET_WIDTH_PX = 794; // A4縦の幅（96dpi相当）。PDF用の表はこの幅で組む

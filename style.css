@@ -1052,51 +1052,12 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus {
 
 
 /* ---------- A4出力：余白確保・可読性向上 ---------- */
-.a4-export {
-    /* A4用紙の上下左右に約1cm（200dpi換算：約79px）の余白を確保。
-       下端はライセンス表記の帯（約12.4mm＝約98px）と重ならないよう広めにとる */
-    padding: 79px 79px 120px !important;
-}
-.a4-export .capture-card,
-.a4-export .result-card {
-    padding: 30px !important;
-}
-.a4-export .capture-title {
-    margin-bottom: 28px;
-    padding-bottom: 22px;
-}
-.a4-export .capture-crop-name { font-size: 2.535rem; }
-.a4-export .capture-caption { font-size: 1.664rem; }
-.a4-export .section-label { font-size: 1.846rem; margin: 30px 0 18px; }
-.a4-export .soil-summary-grid { gap: 16px; }
-.a4-export .soil-summary-item { padding: 16px 18px; }
-.a4-export .soil-summary-item .label { font-size: 1.404rem; margin-bottom: 7px; }
-.a4-export .soil-summary-item .value { font-size: 1.95rem; }
-.a4-export .soil-badge { font-size: 1.404rem; padding: 5px 11px; }
-.a4-export .soil-badge-legend { font-size: 1.482rem; margin-top: 16px; }
-.a4-export #finalReportNpkGrid { gap: 18px; }
-.a4-export #finalReportNpkGrid .npk-card { min-height: 220px; padding: 24px 22px; }
-.a4-export .npk-card-head { gap: 14px; margin-bottom: 16px; }
-.a4-export .npk-card-head .icon-circle { width: 46px; height: 46px; }
-.a4-export .npk-card-head .npk-title { font-size: 1.95rem; }
-.a4-export .npk-card-head .npk-sub { font-size: 1.404rem; }
-.a4-export #finalReportNpkGrid .npk-bar-track { height: 25px; margin-top: 12px; }
-.a4-export .npk-numbers { font-size: 1.482rem; margin-top: 12px; }
-.a4-export .npk-numbers strong { font-size: 1.846rem; }
-.a4-export .npk-deficit-line { font-size: 1.586rem; margin-top: 16px; }
-.a4-export .fert-table { font-size: 1.664rem; }
-.a4-export .fert-table th, .a4-export .fert-table td { padding: 15px 12px; }
-.a4-export .report-compost-text { font-size: 1.716rem; line-height: 1.8; padding: 20px 22px; }
-.a4-export .report-notes-text { font-size: 1.716rem; line-height: 1.85; padding: 20px 22px; }
-.a4-export .disclaimer { font-size: 1.404rem; }
 
 /* ---------- 施肥後カード（目標・残存・追加・施肥後） ---------- */
 .final-rows { margin-top: 10px; display: grid; gap: 4px; }
 .final-row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 1.014rem; color: var(--ink-soft); }
 .final-row:last-child { border-top: 1px dashed rgba(0, 0, 0, 0.15); padding-top: 4px; }
 .final-value strong { color: var(--ink); font-size: 1.15rem; margin-right: 2px; }
-.a4-export .final-row { font-size: 1.482rem; }
-.a4-export .final-value strong { font-size: 1.7rem; }
 
 /* ---------- 県基準対応（作物情報・土壌タイプ・範囲表示） ---------- */
 .crop-info {
